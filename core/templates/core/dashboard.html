@@ -1,0 +1,168 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+    <h2 class="mb-4">Dashboard</h2>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow wallet-card">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title opacity-75">Wallet Balance</h5>
+                            <h2 class="display-4 fw-bold mb-0">₦0.00</h2>
+                            <p class="mt-2 mb-0 opacity-75">
+                                Welcome back, {{ request.user.first_name|default:request.user.username }}!
+                            </p>
+                        </div>
+                        <div class="d-none d-md-block">
+                            <button class="btn btn-lg px-4 btn-withdraw shadow-sm">
+                                <i class="bi bi-wallet2 me-2"></i> Withdraw
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0"><i class="bi bi-briefcase me-2"></i>My Gigs (Services I Offer)</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Title</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service in services %}
+                        <tr>
+                            <td>{{ service.title }}</td>
+                            <td><span class="fw-bold text-success">₦{{ service.price }}</span></td>
+                            <td><span class="badge bg-success">Active</span></td>
+                            <td><a href="{% url 'core:service_detail' service.pk %}" class="btn btn-sm btn-outline-primary">View</a></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-3">You haven't posted any gigs yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-cart me-2"></i>Active Orders (Buying)</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if active_orders %}
+                    <div class="list-group list-group-flush">
+                        {% for order in active_orders %}
+                        <a href="{% url 'core:order_detail' order.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3">
+                            <div>
+                                <h6 class="mb-0">{{ order.service.title }}</h6>
+                                <small class="text-muted">Seller: {{ order.freelancer.username }}</small>
+                            </div>
+                            <span class="badge bg-warning text-dark">{{ order.get_status_display }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                        <div class="p-4 text-center">
+                            <p class="text-muted mb-0">No active orders.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-tools me-2"></i>Incoming Jobs (Selling)</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if incoming_jobs %}
+                    <div class="list-group list-group-flush">
+                        {% for job in incoming_jobs %}
+                        <a href="{% url 'core:order_detail' job.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3">
+                            <div>
+                                <h6 class="mb-0">{{ job.service.title }}</h6>
+                                <small class="text-muted">Client: {{ job.client.username }}</small>
+                            </div>
+                            <span class="badge bg-info">{{ job.get_status_display }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                        <div class="p-4 text-center">
+                            <p class="text-muted mb-0">No new jobs yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-12">
+            <h5 class="text-muted mb-3">Order History</h5>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm opacity-75"> <div class="card-header bg-light py-2">
+                    <small class="fw-bold text-uppercase text-muted">Past Purchases</small>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for order in completed_orders %}
+                    <a href="{% url 'core:order_detail' order.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-2">
+                        <div class="text-truncate">
+                            <span class="d-block text-dark">{{ order.service.title }}</span>
+                            <small class="text-muted">{{ order.updated_at|date:"M d, Y" }}</small>
+                        </div>
+                        {% if order.status == 'completed' %}
+                            <span class="badge bg-success">Completed</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Cancelled</span>
+                        {% endif %}
+                    </a>
+                    {% empty %}
+                        <div class="p-3 text-center text-muted small">No past orders.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm opacity-75">
+                <div class="card-header bg-light py-2">
+                    <small class="fw-bold text-uppercase text-muted">Past Jobs</small>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for job in completed_jobs %}
+                    <a href="{% url 'core:order_detail' job.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-2">
+                        <div class="text-truncate">
+                            <span class="d-block text-dark">{{ job.service.title }}</span>
+                            <small class="text-muted">{{ job.updated_at|date:"M d, Y" }}</small>
+                        </div>
+                        <span class="badge bg-success">Done</span>
+                    </a>
+                    {% empty %}
+                        <div class="p-3 text-center text-muted small">No past jobs.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

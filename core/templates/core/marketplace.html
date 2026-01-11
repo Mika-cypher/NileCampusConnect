@@ -1,0 +1,49 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Marketplace</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <form class="d-flex" role="search" action="." method="get">
+                <input class="form-control me-2" type="search" placeholder="Find services..." aria-label="Search" name="q" value="{{ request.GET.q }}">
+                <button class="btn btn-outline-primary" type="submit">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for service in services %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                {% if service.image %}
+                <img src="{{ service.image.url }}" class="card-img-top marketplace-card-img" alt="{{ service.title }}">
+            {% else %}
+                <div class="card-img-top marketplace-placeholder">
+                    <span class="text-muted"><i class="bi bi-image"></i> No Image</span>
+                </div>
+            {% endif %}
+
+                <div class="card-body">
+                    <h5 class="card-title">{{ service.title }}</h5>
+                    <p class="card-text text-muted small">
+                        By {{ service.freelancer.get_full_name|default:service.freelancer.username }}
+                    </p>
+                    <h6 class="text-success fw-bold">₦{{ service.price }}</h6>
+                    <p class="card-text text-truncate">{{ service.description }}</p>
+                </div>
+                
+                <div class="card-footer bg-white border-top-0">
+                    <a href="{% url 'core:service_detail' service.pk %}" class="btn btn-primary w-100">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <h3 class="text-muted">No gigs found.</h3>
+            <p>Try adjusting your search or check back later!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

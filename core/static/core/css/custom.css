@@ -1,0 +1,169 @@
+/* Service Detail Page Styles */
+.service-placeholder {
+    height: 300px;
+    background-color: #f8f9fa; /* Light gray (Bootstrap bg-light) */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px; /* Optional rounded corners */
+}
+
+.service-placeholder-text {
+    color: #6c757d; /* Bootstrap text-muted */
+    font-size: 1.1rem;
+}
+
+.seller-meta {
+    font-weight: bold;
+    margin-bottom: 0;
+}
+
+.seller-joined {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.service-price {
+    font-size: 1.75rem; /* Large price text */
+    color: #198754; /* Bootstrap success green */
+    margin-bottom: 1.5rem;
+}
+
+.action-buttons {
+    margin-top: 1.5rem;
+    display: grid;
+    gap: 0.5rem;
+}
+
+/* --- Sidebar & Branding Restoration --- */
+
+:root {
+    --nile-blue: #003366; /* Deep Navy Blue */
+    --nile-accent: #0056b3; /* Lighter Blue for hovers */
+}
+
+/* Sidebar Styling */
+.sidebar {
+    background-color: var(--nile-blue);
+    min-height: 100vh;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.85); /* Off-white text */
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    transition: all 0.3s ease;
+}
+
+.sidebar .nav-link:hover, .sidebar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    transform: translateX(5px); /* subtle slide effect */
+}
+
+/* Logo Area */
+.sidebar-brand {
+    padding: 20px 15px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 20px;
+}
+
+.sidebar-brand h3 {
+    color: #fff;
+    font-weight: 700;
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+
+/* --- Global Layout Fixes --- */
+body {
+    overflow-x: hidden; /* Fixes the horizontal scroll issue */
+}
+
+/* --- Marketplace Card Styling --- */
+.marketplace-card-img {
+    height: 200px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.marketplace-placeholder {
+    height: 200px;
+    background-color: #f8f9fa; /* Bootstrap bg-light */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d; /* text-muted */
+}
+
+/* --- Service Detail Page Styling --- */
+.detail-hero-img {
+    height: 350px;
+    object-fit: cover;
+    width: 100%;
+    border-radius: 4px;
+}
+
+.detail-placeholder {
+    height: 350px;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.detail-description {
+    white-space: pre-line; /* Preserves line breaks from the user's input */
+}
+
+.seller-avatar-large {
+    width: 50px; 
+    height: 50px; 
+    font-size: 1.5rem;
+}
+/* Placeholder Icon Size */
+.placeholder-icon-large {
+    font-size: 3rem;
+}
+/* --- Dashboard Wallet --- */
+.wallet-card {
+    background-color: var(--nile-blue);
+    border-radius: 10px;
+    color: white;
+}
+
+.btn-withdraw {
+    color: var(--nile-blue);
+    font-weight: bold;
+    background-color: white;
+    border: none;
+}
+.icon-box {
+    width: 40px; 
+    height: 40px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    border-radius: 50%;
+}
+/* --- Order Detail Page --- */
+.order-status-badge {
+    font-size: 1.25rem; 
+    padding: 0.5rem 1.5rem;
+}
+
+.avatar-circle {
+    width: 40px; 
+    height: 40px;
+    background-color: #f8f9fa; /* Bootstrap bg-light */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+}
