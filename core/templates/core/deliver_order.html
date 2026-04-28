@@ -1,0 +1,78 @@
+<!-- core/templates/core/deliver_order.html -->
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+
+            <div class="mb-4">
+                <a href="{% url 'core:order_detail' order.pk %}" class="text-muted text-decoration-none">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Order #{{ order.id }}
+                </a>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-cloud-upload me-2 text-primary"></i>Submit Your Delivery
+                    </h4>
+                    <small class="text-muted">For: <strong>{{ order.service.title }}</strong></small>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <!-- Show non-field errors (e.g. "must provide file or notes") -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <p class="mb-0"><i class="bi bi-exclamation-circle me-2"></i>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="alert alert-info mb-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Once you submit, <strong>{{ order.client.username }}</strong> will review your work.
+                        Payment of <strong>₦{{ order.price|floatformat:2g }}</strong> will be released to your
+                        wallet when they accept delivery.
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">{{ form.delivery_file.label }}</label>
+                            {{ form.delivery_file }}
+                            {% if form.delivery_file.errors %}
+                                <div class="text-danger small mt-1">{{ form.delivery_file.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                Upload any file type — zip, PDF, image, doc, etc.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">{{ form.delivery_notes.label }}</label>
+                            {{ form.delivery_notes }}
+                            {% if form.delivery_notes.errors %}
+                                <div class="text-danger small mt-1">{{ form.delivery_notes.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-send-fill me-2"></i>Submit Delivery
+                            </button>
+                            <a href="{% url 'core:order_detail' order.pk %}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

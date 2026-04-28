@@ -8,7 +8,7 @@ In the university ecosystem, many students possess valuable skills but lack a ce
 
 ## ⚡ Key Features
 
-- **Service Listings:** Students can post "Gigs" (e.g., "I will design your FYP slides," "I will tutor you in Python").
+- **Service Listings:** Students can post "Gigs" .
 - **Smart Search & Filtering:** Users can filter services by category, price range, and delivery time.
 - **User Profiles:** dedicated profiles showcasing skills, portfolios, and ratings from previous campus gigs.
 - **Secure Authentication:** System designed to verify student status within the university network.

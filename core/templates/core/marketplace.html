@@ -1,49 +1,228 @@
+<!-- core/templates/core/marketplace.html -->
 {% extends 'core/base.html' %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Marketplace</h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <form class="d-flex" role="search" action="." method="get">
-                <input class="form-control me-2" type="search" placeholder="Find services..." aria-label="Search" name="q" value="{{ request.GET.q }}">
-                <button class="btn btn-outline-primary" type="submit">Search</button>
-            </form>
+
+    <!-- Page header -->
+    <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-4 border-bottom flex-wrap gap-2">
+        <div>
+            <h1 class="h2 mb-0">Marketplace</h1>
+            <small class="text-muted">
+                {{ services|length }} gig{{ services|length|pluralize }} found
+                {% if search_query %}for "<strong>{{ search_query }}</strong>"{% endif %}
+                {% if active_category %}in <strong>{{ active_category.name }}</strong>{% endif %}
+            </small>
         </div>
+        <!-- Search bar -->
+        <form class="d-flex" role="search" method="get" action=".">
+            {% if active_category %}
+                <input type="hidden" name="category" value="{{ active_category.slug }}">
+            {% endif %}
+            {% if min_price %}
+                <input type="hidden" name="min_price" value="{{ min_price }}">
+            {% endif %}
+            {% if max_price %}
+                <input type="hidden" name="max_price" value="{{ max_price }}">
+            {% endif %}
+            <input class="form-control me-2"
+                   type="search"
+                   name="q"
+                   placeholder="Search gigs…"
+                   value="{{ search_query }}"
+                   style="min-width: 220px;">
+            <button class="btn btn-outline-primary" type="submit">Search</button>
+        </form>
     </div>
 
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-        {% for service in services %}
-        <div class="col">
-            <div class="card h-100 shadow-sm">
-                {% if service.image %}
-                <img src="{{ service.image.url }}" class="card-img-top marketplace-card-img" alt="{{ service.title }}">
-            {% else %}
-                <div class="card-img-top marketplace-placeholder">
-                    <span class="text-muted"><i class="bi bi-image"></i> No Image</span>
-                </div>
-            {% endif %}
+    <div class="row g-4">
 
-                <div class="card-body">
-                    <h5 class="card-title">{{ service.title }}</h5>
-                    <p class="card-text text-muted small">
-                        By {{ service.freelancer.get_full_name|default:service.freelancer.username }}
+        <!-- ══════════════════════════════════════════
+             FILTER SIDEBAR
+        ══════════════════════════════════════════ -->
+        <div class="col-md-3 col-lg-2">
+            <form method="get" action="." id="filter-form">
+                {% if search_query %}
+                    <input type="hidden" name="q" value="{{ search_query }}">
+                {% endif %}
+
+                <!-- Category filter -->
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2 text-uppercase" style="font-size:.75rem;letter-spacing:.05em;">
+                        Category
+                    </h6>
+                    <div class="list-group list-group-flush">
+                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}{% endif %}"
+                           class="list-group-item list-group-item-action py-1 px-2 small border-0
+                                  {% if not active_category %}fw-semibold text-primary{% endif %}">
+                            All Categories
+                        </a>
+                        {% for cat in all_categories %}
+                        <a href="?category={{ cat.slug }}{% if search_query %}&q={{ search_query }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}"
+                           class="list-group-item list-group-item-action py-1 px-2 small border-0
+                                  {% if active_category.slug == cat.slug %}fw-semibold text-primary{% endif %}">
+                            {{ cat.name }}
+                        </a>
+                        {% empty %}
+                        <p class="text-muted small px-2">No categories yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Price range filter -->
+                <div class="mb-3">
+                    <h6 class="fw-semibold mb-2 text-uppercase" style="font-size:.75rem;letter-spacing:.05em;">
+                        Price Range (₦)
+                    </h6>
+                    {% if active_category %}
+                        <input type="hidden" name="category" value="{{ active_category.slug }}">
+                    {% endif %}
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-1">Min</label>
+                        <input type="number"
+                               name="min_price"
+                               class="form-control form-control-sm"
+                               placeholder="0"
+                               min="0"
+                               step="100"
+                               value="{{ min_price }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted mb-1">Max</label>
+                        <input type="number"
+                               name="max_price"
+                               class="form-control form-control-sm"
+                               placeholder="Any"
+                               min="0"
+                               step="100"
+                               value="{{ max_price }}">
+                    </div>
+                    <div class="d-grid gap-1">
+                        <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
+                        <a href="{% url 'core:marketplace' %}" class="btn btn-outline-secondary btn-sm">
+                            Clear All
+                        </a>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             SERVICE CARDS GRID
+        ══════════════════════════════════════════ -->
+        <div class="col-md-9 col-lg-10">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4">
+
+                {% for service in services %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+
+                        {% if service.image %}
+                            <img src="{{ service.image.url }}"
+                                 class="card-img-top"
+                                 alt="{{ service.title }}"
+                                 style="height:180px;object-fit:cover;">
+                        {% else %}
+                            <div class="d-flex align-items-center justify-content-center bg-light"
+                                 style="height:180px;">
+                                <i class="bi bi-image text-muted" style="font-size:2.5rem;opacity:.35;"></i>
+                            </div>
+                        {% endif %}
+
+                        <div class="card-body pb-2">
+                            <!-- Category badge -->
+                            {% if service.category %}
+                            <span class="badge bg-light text-primary border border-primary-subtle mb-2"
+                                  style="font-size:.7rem;">
+                                {{ service.category.name }}
+                            </span>
+                            {% endif %}
+
+                            <h5 class="card-title mb-1" style="font-size:1rem;line-height:1.3;">
+                                {{ service.title }}
+                            </h5>
+                            <p class="text-muted small mb-2">
+                                by {{ service.freelancer.get_full_name|default:service.freelancer.username }}
+                            </p>
+                            <p class="card-text text-muted small"
+                               style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                                {{ service.description }}
+                            </p>
+                        </div>
+
+                        <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center py-2">
+                            <span class="text-success fw-bold">₦{{ service.price|floatformat:2g }}</span>
+                            <a href="{% url 'core:service_detail' service.pk %}"
+                               class="btn btn-primary btn-sm">
+                                View Details
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5 text-muted">
+                    <i class="bi bi-search" style="font-size:3rem;opacity:.25;"></i>
+                    <h5 class="mt-3">No gigs match your filters.</h5>
+                    <p class="small">Try broadening your search or
+                        <a href="{% url 'core:marketplace' %}">clear all filters</a>.
                     </p>
-                    <h6 class="text-success fw-bold">₦{{ service.price }}</h6>
-                    <p class="card-text text-truncate">{{ service.description }}</p>
                 </div>
-                
-                <div class="card-footer bg-white border-top-0">
-                    <a href="{% url 'core:service_detail' service.pk %}" class="btn btn-primary w-100">View Details</a>
-                </div>
+                {% endfor %}
+
+                {% if services.has_other_pages %}
+                    <nav aria-label="Marketplace gig navigation" class="mt-5 mb-4">
+                    <ul class="pagination justify-content-center border-0 shadow-sm rounded-pill overflow-hidden" style="width: fit-content; margin: 0 auto;">
+        
+                {% if services.has_previous %}
+                    <li class="page-item">
+                    <a class="page-link text-primary fw-semibold px-4 py-2 border-0" href="?page={{ services.previous_page_number }}">
+                    <i class="bi bi-chevron-left"></i> Prev
+                    </a>
+                    </li>
+                {% else %}
+        <li class="page-item disabled">
+            <span class="page-link text-muted bg-light px-4 py-2 border-0">
+                <i class="bi bi-chevron-left"></i> Prev
+            </span>
+        </li>
+        {% endif %}
+
+        {% for num in services.paginator.page_range %}
+            {% if services.number == num %}
+            <li class="page-item active" aria-current="page">
+                <span class="page-link bg-primary border-0 px-3 py-2 fw-bold">{{ num }}</span>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <a class="page-link text-dark border-0 px-3 py-2 fw-medium" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if services.has_next %}
+        <li class="page-item">
+            <a class="page-link text-primary fw-semibold px-4 py-2 border-0" href="?page={{ services.next_page_number }}">
+                Next <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link text-muted bg-light px-4 py-2 border-0">
+                Next <i class="bi bi-chevron-right"></i>
+            </span>
+        </li>
+        {% endif %}
+
+    </ul>
+</nav>
+{% endif %}
+
             </div>
         </div>
-        {% empty %}
-        <div class="col-12 text-center py-5">
-            <h3 class="text-muted">No gigs found.</h3>
-            <p>Try adjusting your search or check back later!</p>
-        </div>
-        {% endfor %}
+
     </div>
 </div>
 {% endblock %}
+

@@ -1,86 +1,118 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+<meta charset="utf-8">
+    {% load static %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Campus Connect</title>
+    <title>{% block title %}Nile Campus Connect{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    
     <link rel="stylesheet" href="{% static 'core/css/custom.css' %}">
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <nav class="col-md-2 d-none d-md-block sidebar p-0">
-                <div class="sidebar-brand">
-                    <h3><i class="bi bi-diagram-3-fill"></i> Campus Connect</h3>
-                </div>
-            
-                <div class="position-sticky pt-3">
-                    <ul class="nav flex-column px-3">
-                        
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'core:dashboard' %}">
-                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                            </a>
-                        </li>
-            
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'marketplace' %}active{% endif %}" href="{% url 'core:marketplace' %}">
-                                <i class="bi bi-shop me-2"></i> Marketplace
-                            </a>
-                        </li>
-            
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'core:dashboard' %}">
-                                <i class="bi bi-briefcase me-2"></i> My Gigs
-                            </a>
-                        </li>
-            
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'create_service' %}active{% endif %}" href="{% url 'core:create_service' %}">
-                                <i class="bi bi-plus-circle me-2"></i> Post a Gig
-                            </a>
-                        </li>
-            
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="bi bi-cart3 me-2"></i> My Orders (Buying)
-                            </a>
-                        </li>
-            
-                        <li class="nav-item">
-                            <a class="nav-link d-flex justify-content-between align-items-center" href="#">
-                                <span><i class="bi bi-inbox me-2"></i> Inbox</span>
-                                <span class="badge bg-info rounded-pill">3</span>
-                            </a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <hr class="text-white opacity-25 mx-2 my-3">
-                        </li>
-                    
-                        <li class="nav-item">
-                            <form action="{% url 'core:logout' %}" method="post">
-                                {% csrf_token %}
-                                <button type="submit" class="nav-link w-100 text-start border-0 bg-transparent">
-                                    <i class="bi bi-box-arrow-right me-2"></i> Logout
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
 
-            <main class="col-md-10 ms-sm-auto col-lg-10 px-md-4 py-4">
-                {% block content %}
-                {% endblock %}
-            </main>
+<nav class="navbar d-md-none px-3 py-2 bg-dark position-sticky top-0" style="z-index: 1060;">
+    <a class="navbar-brand text-white fw-bold" href="{% url 'core:dashboard' %}" style="font-size: 1.1rem;">
+        <i class="bi bi-diagram-3-fill text-primary me-2"></i>Nile Campus Connect
+    </a>
+    <div class="d-flex align-items-center gap-2">
+        <div class="dropdown">
+            <button class="btn btn-sm btn-link text-white p-1 position-relative border-0"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-bell fs-5"></i>
+                {% if unread_notif_count %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                      style="font-size:.55rem; transform: translate(-30%, 30%) !important;">
+                    {{ unread_notif_count }}
+                </span>
+                {% endif %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width:300px; max-width:320px;">
+                <li><h6 class="dropdown-header">Notifications</h6></li>
+                <li><hr class="dropdown-divider m-0"></li>
+                {% if unread_notifications %}
+                    {% for notif in unread_notifications %}
+                    <li>
+                        <a class="dropdown-item py-2 text-wrap bg-light border-bottom" href="{{ notif.link }}"
+                           style="white-space:normal; font-size:.85rem; line-height:1.3;">
+                            <i class="bi bi-circle-fill text-primary me-2" style="font-size:.45rem; vertical-align:middle;"></i>
+                            {{ notif.message }}
+                            <br><small class="text-muted ms-3">{{ notif.created_at|timesince }} ago</small>
+                        </a>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li>
+                        <span class="dropdown-item-text text-muted small py-3 text-center d-block">
+                            <i class="bi bi-bell-slash me-1"></i> All caught up!
+                        </span>
+                    </li>
+                {% endif %}
+                <li><hr class="dropdown-divider m-0"></li>
+                <li>
+                    <form method="post" action="{% url 'core:mark_notifications_read' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item text-center small py-2 fw-semibold
+                            {% if unread_notif_count %}text-primary{% else %}text-muted{% endif %}">
+                            <i class="bi bi-check2-all me-1"></i> Mark all as read
+                        </button>
+                    </form>
+                </li>
+            </ul>
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <button class="btn btn-sm btn-outline-light border-0 p-1 ms-1"
+                type="button"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#mobileNav"
+                aria-controls="mobileNav"
+                aria-label="Open navigation menu"
+                title="Open navigation menu">
+            <i class="bi bi-list fs-3"></i>
+        </button>
+    </div>
+</nav>
+
+<div class="offcanvas offcanvas-start d-md-none bg-dark"
+     tabindex="-1"
+     id="mobileNav"
+     style="width: 280px; z-index: 1070;">
+    <div class="offcanvas-header border-bottom border-secondary">
+        <h5 class="offcanvas-title text-white fw-bold">
+            <i class="bi bi-diagram-3-fill text-primary me-2"></i>Nile CC.
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close navigation menu" title="Close navigation menu"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <ul class="nav flex-column px-3 pt-3">
+            {% include "core/_sidebar_links.html" %}
+        </ul>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <nav class="col-md-2 d-none d-md-flex flex-column sidebar p-0 position-relative"
+             style="min-height: 100vh; z-index: 1050;">
+            <div class="sidebar-brand text-center py-4">
+                <h4 class="fw-bold mb-0 text-white"><i class="bi bi-diagram-3-fill text-primary"></i> Nile CC.</h4>
+            </div>
+            <div class="position-sticky pt-3 flex-grow-1">
+                <ul class="nav flex-column px-3">
+                    {% include "core/_sidebar_links.html" %}
+                </ul>
+            </div>
+        </nav>
+
+        <main class="col-md-10 ms-sm-auto col-lg-10 px-md-4 py-4">
+            {% block content %}{% endblock %}
+        </main>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

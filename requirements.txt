@@ -1,0 +1,18 @@
+# requirements.txt
+
+# Core
+Django>=4.2,<5.2
+Pillow>=10.0.0
+
+# Environment
+python-dotenv>=1.0.0
+
+# Production server
+gunicorn>=21.2.0
+
+# Production static files
+whitenoise>=6.6.0
+
+# Production database
+dj-database-url>=2.1.0
+psycopg2-binary>=2.9.9

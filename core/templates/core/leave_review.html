@@ -1,0 +1,142 @@
+<!-- core/templates/core/leave_review.html -->
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="mb-4">
+                <a href="{% url 'core:order_detail' order.pk %}"
+                   class="text-muted text-decoration-none">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Order #{{ order.id }}
+                </a>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0"><i class="bi bi-star me-2 text-warning"></i>Leave a Review</h4>
+                </div>
+                <div class="card-body p-4">
+
+                    <!-- Who is being reviewed -->
+                    <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded">
+                        {% if order.freelancer.profile_picture %}
+                            <img src="{{ order.freelancer.profile_picture.url }}"
+                                 class="rounded-circle avatar-52 object-fit-cover"
+                                 alt="{{ order.freelancer.username }}">
+                        {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center
+                                        justify-content-center flex-shrink-0 avatar-52">
+                                <i class="bi bi-person-fill text-white fs-4"></i>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <p class="mb-0 fw-semibold">
+                                {{ order.freelancer.get_full_name|default:order.freelancer.username }}
+                            </p>
+                            <small class="text-muted">for: {{ order.service.title }}</small>
+                        </div>
+                    </div>
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <!-- Star rating — styled radio buttons -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold d-block mb-2">
+                                {{ form.rating.label }}
+                            </label>
+
+                            <!-- Reverse-rendered stars (CSS trick: last radio = leftmost star on click) -->
+                            <div class="star-rating d-flex gap-2">
+                                {% for value, label in form.rating.field.choices %}
+                                <div class="form-check form-check-inline m-0">
+                                    <input class="form-check-input visually-hidden"
+                                           type="radio"
+                                           name="rating"
+                                           id="star{{ value }}"
+                                           aria-label="{{ value }} star{{ value|pluralize }}"
+                                           value="{{ value }}"
+                                           {% if forloop.last %}checked{% endif %}>
+                                    <label class="form-check-label fs-2 text-warning cursor-pointer"
+                                           for="star{{ value }}"
+                                           title="{{ value }} star{{ value|pluralize }}">
+                                        <i class="bi bi-star-fill" id="star-icon-{{ value }}"></i>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            {% if form.rating.errors %}
+                            <div class="text-danger small mt-1">{{ form.rating.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Written comment -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold" for="{{ form.comment.id_for_label }}">
+                                {{ form.comment.label }}
+                            </label>
+                            {{ form.comment }}
+                            {% if form.comment.errors %}
+                            <div class="text-danger small mt-1">{{ form.comment.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg fw-semibold">
+                                <i class="bi bi-star-fill me-2"></i>Submit Review
+                            </button>
+                            <a href="{% url 'core:order_detail' order.pk %}"
+                               class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Star hover/select interaction — vanilla JS, no dependencies -->
+<script>
+(function () {
+    const radios = document.querySelectorAll('input[name="rating"]');
+    const icons  = document.querySelectorAll('[id^="star-icon-"]');
+
+    function paint(upTo) {
+        icons.forEach((icon, idx) => {
+            const val = idx + 1;
+            icon.className = val <= upTo
+                ? 'bi bi-star-fill text-warning'
+                : 'bi bi-star text-muted';
+        });
+    }
+
+    // Paint on change (keyboard + click)
+    radios.forEach(radio => {
+        radio.addEventListener('change', () => paint(parseInt(radio.value)));
+    });
+
+    // Paint on hover
+    icons.forEach((icon, idx) => {
+        icon.parentElement.addEventListener('mouseenter', () => paint(idx + 1));
+        icon.parentElement.addEventListener('mouseleave', () => {
+            const checked = document.querySelector('input[name="rating"]:checked');
+            paint(checked ? parseInt(checked.value) : 0);
+        });
+    });
+
+    // Initialise to checked value
+    const checked = document.querySelector('input[name="rating"]:checked');
+    if (checked) paint(parseInt(checked.value));
+})();
+</script>
+{% endblock %}
