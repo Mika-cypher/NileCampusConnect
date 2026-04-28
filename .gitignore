@@ -1,6 +1,16 @@
+# .gitignore
+
+# Python
 venv/
 __pycache__/
 *.pyc
+*.pyo
+
+# Django
 db.sqlite3
 .env
 .DS_Store
+
+# Generated at deploy time — never commit these
+staticfiles/
+media/
