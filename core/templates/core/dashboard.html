@@ -278,7 +278,7 @@
     "use strict";
 
     // ── Config injected safely from Django context ────────────
-    const PAYSTACK_PUBLIC_KEY = "{{ pk_test_3a9033e5e93264bf28684120dee7227cab9d6c32}}";
+    const PAYSTACK_PUBLIC_KEY = "{{ PAYSTACK_PUBLIC_KEY|default:''|escapejs }}";
     const VERIFY_URL          = "{% url 'core:verify_payment' %}";
     const CSRF_TOKEN          = "{{ csrf_token|escapejs }}";
 
@@ -314,7 +314,7 @@
             amount:   Math.round(amount * 100),   // kobo
             currency: "NGN",
             ref:      "NCC-" + Date.now() + "-" + Math.floor(Math.random() * 1e6),
-            label:    "Fund Campus Connect Wallet",
+            label:    "Fund Nile Campus Connect Wallet",
 
             // ── Paystack calls this after the popup closes successfully ──
             // At this point Paystack has charged the card. We now send the
@@ -326,6 +326,15 @@
             onClose: function () {
                 // User closed the popup — no charge was made, nothing to do
             },
+        });
+
+        console.log("PAYSTACK_PUBLIC_KEY:", PAYSTACK_PUBLIC_KEY, "type:", typeof PAYSTACK_PUBLIC_KEY);
+        console.log("userEmail:", userEmail, "type:", typeof userEmail);
+        console.log("PaystackPop available:", typeof PaystackPop !== "undefined", PaystackPop);
+        console.log("Paystack handler config:", {
+            key: PAYSTACK_PUBLIC_KEY,
+            email: userEmail,
+            amount: Math.round(amount * 100),
         });
 
         handler.openIframe();
