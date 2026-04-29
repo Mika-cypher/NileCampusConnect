@@ -1,5 +1,9 @@
 # core/views.py
 
+import json
+import requests
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
@@ -9,6 +13,7 @@ from django.db.models import Q, Max
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.conf import settings
+from django.db import transaction
 from .models import Order, Service, Wallet, CustomUser, Review, Category, Message, Notification
 from .forms import StudentRegistrationForm, ServiceForm, DeliveryForm, ReviewForm, ProfileUpdateForm, MessageForm
 
@@ -655,3 +660,63 @@ def accept_order(request, pk):
         messages.success(request, "Job accepted! You can now start working.")
         
     return redirect('core:order_detail', pk=pk)
+
+@require_POST
+@login_required
+def verify_paystack_payment(request):
+    """
+    Verifies the transaction reference with Paystack and credits the user wallet.
+    Uses transaction.atomic() to prevent race conditions during balance updates.
+    """
+    try:
+        body = json.loads(request.body)
+        reference = body.get('reference', '').strip()
+    except (json.JSONDecodeError, AttributeError):
+        return JsonResponse({'status': 'error', 'message': 'Invalid request body.'}, status=400)
+
+    if not reference:
+        return JsonResponse({'status': 'error', 'message': 'No payment reference provided.'}, status=400)
+
+    # --- Call Paystack verification API ---
+    try:
+        paystack_response = requests.get(
+            f'https://api.paystack.co/transaction/verify/{reference}',
+            headers={
+                'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}',
+                'Content-Type': 'application/json',
+            },
+            timeout=10,
+        )
+        paystack_response.raise_for_status()
+        paystack_data = paystack_response.json()
+
+    except requests.exceptions.RequestException as e:
+        return JsonResponse({'status': 'error', 'message': f'Verification failed: {str(e)}'}, status=503)
+
+    # --- Validate the Paystack response ---
+    tx_data = paystack_data.get('data', {})
+
+    if not paystack_data.get('status') or tx_data.get('status') != 'success':
+        return JsonResponse({'status': 'error', 'message': 'Payment was not successful on Paystack.'}, status=400)
+
+    if tx_data.get('currency') != 'NGN':
+        return JsonResponse({'status': 'error', 'message': 'Invalid currency.'}, status=400)
+
+    # --- Convert kobo to naira and update database ---
+    amount_naira = tx_data.get('amount', 0) / 100
+
+    try:
+        with transaction.atomic():
+            # select_for_update locks the row so two clicks don't double-fund
+            wallet = Wallet.objects.select_for_update().get(user=request.user)
+            wallet.available_balance += amount_naira
+            wallet.save(update_fields=['available_balance'])
+
+    except Wallet.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Wallet system error.'}, status=404)
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'₦{amount_naira:,.2f} added to your wallet.',
+        'new_balance': float(wallet.available_balance),
+    })

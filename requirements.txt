@@ -12,6 +12,7 @@ gunicorn>=21.2.0
 
 # Production static files
 whitenoise>=6.6.0
+requests>=2.31.0
 
 # Production database
 dj-database-url>=2.1.0

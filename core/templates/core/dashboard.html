@@ -32,8 +32,8 @@
                 </h3>
                 <div class="d-flex justify-content-between align-items-end mt-2">
                     <p class="mb-0 text-muted small">Spendable or withdrawable</p>
-                    <button type="button" class="btn btn-sm btn-outline-success fw-bold px-3 shadow-sm rounded-pill" onclick="payWithPaystack()">
-                        <i class="bi bi-plus-lg me-1"></i> Fund
+                    <button type="button" class="btn btn-sm btn-outline-success fw-bold px-3 shadow-sm rounded-pill" onclick="payWithPaystack()" data-user-email="{{ request.user.email }}">
+                        <i class="bi bi-plus-circle me-1"></i> Fund Wallet
                     </button>
                 </div>
             </div>
@@ -274,39 +274,122 @@
 {% block extra_js %}
 <script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
-    function payWithPaystack() {
-        let amount = prompt("How much would you like to add to your wallet? (₦)");
-        
-        if (!amount || isNaN(amount) || amount <= 0) {
-            alert("Please enter a valid amount.");
+(function () {
+    "use strict";
+
+    // ── Config injected safely from Django context ────────────
+    const PAYSTACK_PUBLIC_KEY = "{{ PAYSTACK_PUBLIC_KEY|escapejs }}";
+    const VERIFY_URL          = "{% url 'core:verify_paystack_payment' %}";
+    const CSRF_TOKEN          = "{{ csrf_token }}";
+
+    // Read email from data attribute — never inline user data in JS strings
+    const fundBtn   = document.querySelector('[data-user-email]');
+    const userEmail = fundBtn ? fundBtn.dataset.userEmail : "";
+
+    // ── Balance span ──────────────────────────────────────────
+    const balanceSpan = document.getElementById("wallet-balance");
+
+    function formatNaira(amount) {
+        return parseFloat(amount).toLocaleString("en-NG", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+    }
+
+    // ── Entry point (called by onclick on the Fund button) ────
+    window.payWithPaystack = function () {
+        const rawInput = window.prompt("Enter amount to fund your wallet (₦):\n\nMinimum: ₦100");
+        if (rawInput === null) return;   // user cancelled
+
+        const amount = parseFloat(rawInput.replace(/[^0-9.]/g, ""));
+
+        if (isNaN(amount) || amount < 100) {
+            alert("Please enter a valid amount of at least ₦100.");
             return;
         }
 
-        let amountInKobo = Math.round(amount * 100);
+        const handler = PaystackPop.setup({
+            key:      PAYSTACK_PUBLIC_KEY,
+            email:    userEmail,
+            amount:   Math.round(amount * 100),   // kobo
+            currency: "NGN",
+            ref:      "NCC-" + Date.now() + "-" + Math.floor(Math.random() * 1e6),
+            label:    "Fund Campus Connect Wallet",
 
-        let handler = PaystackPop.setup({
-            // REPLACE THIS WITH YOUR ACTUAL KEY FROM PAYSTACK DASHBOARD
-            key: 'pk_test_3a9033e5e93264bf28684120dee7227cab9d6c32', 
-            email: '{{ request.user.email }}',
-            amount: amountInKobo,
-            currency: 'NGN',
-            ref: 'NCC-' + Date.now() + '-' + Math.floor(Math.random() * 1e6),
-            
-            callback: function(response) {
-                // SUCCESS: Update the UI balance optimistically
-                let balanceSpan = document.getElementById('wallet-balance');
-                if (balanceSpan) {
-                    let currentVal = parseFloat(balanceSpan.innerText.replace(/,/g, '')) || 0;
-                    let newVal = currentVal + parseFloat(amount);
-                    balanceSpan.innerText = newVal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                }
-                alert("Payment Successful! Reference: " + response.reference);
+            // ── Paystack calls this after the popup closes successfully ──
+            // At this point Paystack has charged the card. We now send the
+            // reference to our backend to verify and credit the wallet.
+            callback: function (response) {
+                verifyOnBackend(response.reference, amount);
             },
-            onClose: function() {
-                console.log('Payment window closed.');
-            }
+
+            onClose: function () {
+                // User closed the popup — no charge was made, nothing to do
+            },
         });
+
         handler.openIframe();
+    };
+
+    // ── Backend verification ──────────────────────────────────
+    async function verifyOnBackend(reference, expectedAmount) {
+
+        // Disable the fund button while the request is in flight
+        if (fundBtn) {
+            fundBtn.disabled    = true;
+            fundBtn.textContent = "Verifying…";
+        }
+
+        try {
+            const response = await fetch(VERIFY_URL, {
+                method:  "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken":  CSRF_TOKEN,
+                },
+                body: JSON.stringify({ reference }),
+            });
+
+            const data = await response.json();
+
+            if (data.status === "success") {
+                // Update the balance span with the server-confirmed value
+                if (balanceSpan) {
+                    balanceSpan.textContent = formatNaira(data.new_balance);
+                }
+                alert(
+                    "✅ Wallet funded successfully!\n\n" +
+                    data.message + "\n\n" +
+                    "New balance: ₦" + formatNaira(data.new_balance)
+                );
+                // Full page reload so escrow, order counts etc. all refresh
+                window.location.reload();
+
+            } else {
+                alert(
+                    "⚠️ Payment verification failed.\n\n" +
+                    (data.message || "Please contact support with reference: " + reference)
+                );
+            }
+
+        } catch (networkError) {
+            // fetch() itself failed (offline, timeout, etc.)
+            alert(
+                "⚠️ Network error during verification.\n\n" +
+                "Your card may have been charged. Please contact support\n" +
+                "with this reference: " + reference
+            );
+            console.error("Paystack verification network error:", networkError);
+
+        } finally {
+            // Always re-enable the button
+            if (fundBtn) {
+                fundBtn.disabled    = false;
+                fundBtn.innerHTML   = '<i class="bi bi-plus-circle me-1"></i> Fund Wallet';
+            }
+        }
     }
+
+})();
 </script>
 {% endblock %}
