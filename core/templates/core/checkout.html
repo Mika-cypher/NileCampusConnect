@@ -1,5 +1,6 @@
 <!-- core/templates/core/checkout.html -->
 {% extends 'core/base.html' %}
+{% load humanize %}
 
 {% block content %}
 <div class="container mt-5">
@@ -42,7 +43,7 @@
                     <!-- Live wallet balance -->
                     <div class="d-flex justify-content-between mb-4 {% if not can_afford %}text-danger{% else %}text-muted{% endif %}">
                         <span>Your wallet balance:</span>
-                        <strong>₦{{ wallet.available_balance|floatformat:"2g" }}</strong>
+                        <strong>₦{{ wallet.available_balance|intcomma }}</strong>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded">
@@ -54,7 +55,7 @@
                     <div class="alert alert-danger">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i>
                         <strong>Insufficient funds.</strong>
-                        You need ₦{{ service.price }} but your wallet only has ₦{{ wallet.available_balance|floatformat:"2g" }}.
+                        You need ₦{{ service.price }} but your wallet only has ₦{{ wallet.available_balance|intcomma }}.
                         <!-- Sprint 6 will add a Top Up button here -->
                     </div>
                     {% endif %}

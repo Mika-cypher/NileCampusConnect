@@ -1,5 +1,6 @@
 <!-- core/templates/core/deliver_order.html -->
 {% extends 'core/base.html' %}
+{% load humanize %}
 
 {% block content %}
 <div class="container mt-5">
@@ -34,7 +35,7 @@
                     <div class="alert alert-info mb-4">
                         <i class="bi bi-info-circle me-2"></i>
                         Once you submit, <strong>{{ order.client.username }}</strong> will review your work.
-                        Payment of <strong>₦{{ order.price|floatformat:2g }}</strong> will be released to your
+                        Payment of <strong>₦{{ order.price|intcomma }}</strong> will be released to your
                         wallet when they accept delivery.
                     </div>
 
