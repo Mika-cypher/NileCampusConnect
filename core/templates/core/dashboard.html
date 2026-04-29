@@ -279,8 +279,8 @@
 
     // ── Config injected safely from Django context ────────────
     const PAYSTACK_PUBLIC_KEY = "{{ PAYSTACK_PUBLIC_KEY|escapejs }}";
-    const VERIFY_URL          = "{% url 'core:verify_paystack_payment' %}";
-    const CSRF_TOKEN          = "{{ csrf_token }}";
+    const VERIFY_URL          = "{% url 'core:verify_payment' %}";
+    const CSRF_TOKEN          = "{{ csrf_token|escapejs }}";
 
     // Read email from data attribute — never inline user data in JS strings
     const fundBtn   = document.querySelector('[data-user-email]');
