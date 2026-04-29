@@ -278,7 +278,7 @@
     "use strict";
 
     // ── Config injected safely from Django context ────────────
-    const PAYSTACK_PUBLIC_KEY = "{{ PAYSTACK_PUBLIC_KEY|escapejs }}";
+    const PAYSTACK_PUBLIC_KEY = "{{ pk_test_3a9033e5e93264bf28684120dee7227cab9d6c32}}";
     const VERIFY_URL          = "{% url 'core:verify_payment' %}";
     const CSRF_TOKEN          = "{{ csrf_token|escapejs }}";
 
