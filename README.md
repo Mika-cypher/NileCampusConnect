@@ -2,25 +2,25 @@
 
 **NileCampusConnect** is a web-based platform designed exclusively for the Nile University of Nigeria community. It bridges the gap between students with marketable skills (design, coding, writing) and members of the campus community who need services, creating a safe, closed-loop freelance economy.
 
-## 🎯 Problem Statement
+##  Problem Statement
 
 In the university ecosystem, many students possess valuable skills but lack a centralized, trusted platform to monetize them. Conversely, students and organizations often look for affordable services but struggle to find reliable talent on campus. NileCampusConnect solves this by providing a verified marketplace for the university demographic.
 
-## ⚡ Key Features
+##  Key Features
 
 - **Service Listings:** Students can post "Gigs" .
 - **Smart Search & Filtering:** Users can filter services by category, price range, and delivery time.
 - **User Profiles:** dedicated profiles showcasing skills, portfolios, and ratings from previous campus gigs.
 - **Secure Authentication:** System designed to verify student status within the university network.
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 - **Backend:** Python (Django Framework) - chosen for its robust security and rapid development capabilities.
 - **Frontend:** HTML5, CSS3, JavaScript (Bootstrap/Tailwind).
 - **Database:** SQLite (Development) / PostgreSQL (Production).
 - **Architecture:** Model-View-Template (MVT).
 
-## 🚀 Getting Started
+##  Getting Started
 
 To run the project locally for development and testing:
 
