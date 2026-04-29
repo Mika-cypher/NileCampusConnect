@@ -16,7 +16,7 @@ from django.conf import settings
 from django.db import transaction
 from .models import Order, Service, Wallet, CustomUser, Review, Category, Message, Notification
 from .forms import StudentRegistrationForm, ServiceForm, DeliveryForm, ReviewForm, ProfileUpdateForm, MessageForm
-
+from decimal import Decimal
 
 # ---------------------------------------------------------------------------
 # Dashboard
@@ -703,7 +703,8 @@ def verify_paystack_payment(request):
         return JsonResponse({'status': 'error', 'message': 'Invalid currency.'}, status=400)
 
     # --- Convert kobo to naira and update database ---
-    amount_naira = tx_data.get('amount', 0) / 100
+    amount_kobo = tx_data.get('amount', 0)
+    amount_naira = Decimal(str(amount_kobo)) / Decimal('100')
 
     try:
         with transaction.atomic():

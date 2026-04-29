@@ -278,7 +278,7 @@
     "use strict";
 
     // ── Config injected safely from Django context ────────────
-    const PAYSTACK_PUBLIC_KEY = "{{ PAYSTACK_PUBLIC_KEY|default:''|escapejs }}";
+    const PAYSTACK_PUBLIC_KEY = "pk_test_3a9033e5e93264bf28684120dee7227cab9d6c32";
     const VERIFY_URL          = "{% url 'core:verify_payment' %}";
     const CSRF_TOKEN          = "{{ csrf_token|escapejs }}";
 
@@ -308,10 +308,40 @@
             return;
         }
 
+        // ── Strict validation before Paystack setup ─────────────
+        const koboAmount = Math.round(amount * 100);
+
+        if (!PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY.trim() === "") {
+            alert("Error: Paystack public key is missing or empty. Cannot proceed with payment.");
+            return;
+        }
+
+        if (PAYSTACK_PUBLIC_KEY !== PAYSTACK_PUBLIC_KEY.trim()) {
+            alert("Error: Paystack public key has leading/trailing whitespace. Please fix the key.");
+            return;
+        }
+
+        if (!userEmail || userEmail.trim() === "") {
+            alert("Error: User email is missing. Cannot proceed with payment.");
+            return;
+        }
+
+        if (isNaN(koboAmount) || koboAmount <= 0) {
+            alert("Error: Invalid amount calculated. Cannot proceed with payment.");
+            return;
+        }
+
+        // ── Verbose logging before Paystack setup ──────────────
+        console.log("PAYSTACK_PUBLIC_KEY:", PAYSTACK_PUBLIC_KEY, "type:", typeof PAYSTACK_PUBLIC_KEY);
+        console.log("userEmail:", userEmail, "type:", typeof userEmail);
+        console.log("amount (naira):", amount, "type:", typeof amount);
+        console.log("koboAmount:", koboAmount, "type:", typeof koboAmount);
+        console.log("PaystackPop available:", typeof PaystackPop !== "undefined", PaystackPop);
+
         const handler = PaystackPop.setup({
             key:      PAYSTACK_PUBLIC_KEY,
             email:    userEmail,
-            amount:   Math.round(amount * 100),   // kobo
+            amount:   koboAmount,
             currency: "NGN",
             ref:      "NCC-" + Date.now() + "-" + Math.floor(Math.random() * 1e6),
             label:    "Fund Nile Campus Connect Wallet",
@@ -326,15 +356,6 @@
             onClose: function () {
                 // User closed the popup — no charge was made, nothing to do
             },
-        });
-
-        console.log("PAYSTACK_PUBLIC_KEY:", PAYSTACK_PUBLIC_KEY, "type:", typeof PAYSTACK_PUBLIC_KEY);
-        console.log("userEmail:", userEmail, "type:", typeof userEmail);
-        console.log("PaystackPop available:", typeof PaystackPop !== "undefined", PaystackPop);
-        console.log("Paystack handler config:", {
-            key: PAYSTACK_PUBLIC_KEY,
-            email: userEmail,
-            amount: Math.round(amount * 100),
         });
 
         handler.openIframe();
