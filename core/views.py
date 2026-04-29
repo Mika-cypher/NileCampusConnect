@@ -90,56 +90,57 @@ def create_service(request):
 
 
 def marketplace(request):
-    services = Service.objects.filter(
+    # 1. Start with the full list (QuerySet)
+    services_queryset = Service.objects.filter(
         is_active=True
     ).select_related('freelancer', 'category').order_by('-created_at')
-    # ── PAGINATION LOGIC ──
-    # Show 9 gigs per page (creates a clean 3x3 grid on desktop)
-    paginator = Paginator(services, 9) 
-    page_number = request.GET.get('page')
-    services = paginator.get_page(page_number)
 
-    # --- Text search ---
+    # 2. Apply Text Search
     search_query = request.GET.get('q', '').strip()
     if search_query:
-        services = services.filter(
+        services_queryset = services_queryset.filter(
             Q(title__icontains=search_query) |
             Q(description__icontains=search_query)
         )
 
-    # --- Category filter ---
+    # 3. Apply Category Filter
     category_slug = request.GET.get('category', '').strip()
     active_category = None
     if category_slug:
         active_category = Category.objects.filter(slug=category_slug).first()
         if active_category:
-            services = services.filter(category=active_category)
+            services_queryset = services_queryset.filter(category=active_category)
 
-    # --- Price range filter ---
+    # 4. Apply Price Range Filter
     min_price = request.GET.get('min_price', '').strip()
     max_price = request.GET.get('max_price', '').strip()
     try:
         if min_price:
-            services = services.filter(price__gte=min_price)
+            services_queryset = services_queryset.filter(price__gte=min_price)
     except (ValueError, TypeError):
         min_price = ''
     try:
         if max_price:
-            services = services.filter(price__lte=max_price)
+            services_queryset = services_queryset.filter(price__lte=max_price)
     except (ValueError, TypeError):
         max_price = ''
+
+    # 5. NOW PAGINATE (After all filters are applied)
+    paginator = Paginator(services_queryset, 9) 
+    page_number = request.GET.get('page')
+    service_list = paginator.get_page(page_number) # We call this 'service_list' to match your template
 
     all_categories = Category.objects.all()
 
     return render(request, 'core/marketplace.html', {
-        'services':        services,
+        'services':        service_list,    # Using both names just in case your 
+        'service_list':    service_list,    # template uses one or the other.
         'search_query':    search_query,
         'all_categories':  all_categories,
         'active_category': active_category,
         'min_price':       min_price,
         'max_price':       max_price,
     })
-
 
 def service_detail(request, pk):
     service = get_object_or_404(Service, pk=pk)
