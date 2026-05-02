@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.contrib import messages
+from django.urls import reverse
+from decimal import Decimal
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser, Service, Category, Wallet, Order, Review, Message, Notification
 
@@ -10,7 +13,6 @@ class CustomUserAdmin(UserAdmin):
     search_fields = ('username', 'email', 'first_name', 'last_name')
     ordering = ('-date_joined',)
 
-    # Removed wallet_balance from fieldsets since it lives in the Wallet model now.
     fieldsets = UserAdmin.fieldsets
     add_fieldsets = UserAdmin.add_fieldsets
 
@@ -38,6 +40,73 @@ class ServiceAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'updated_at')
 
+# --- DISPUTE RESOLUTION ACTIONS ---
+
+@admin.action(description="Settle Dispute: Refund Client")
+def refund_client_action(modeladmin, request, queryset):
+    """
+    Resolves dispute in favor of the client.
+    Refunds the escrow amount back to the client's available balance and cancels the order.
+    """
+    success_count = 0
+    for order in queryset:
+        if order.is_funds_in_escrow and order.status != 'cancelled':
+            client_wallet = order.client.wallet
+            
+            # Math based on Wallet model logic
+            client_wallet.escrow_balance -= order.escrow_amount
+            client_wallet.available_balance += order.escrow_amount
+            client_wallet.save()
+            
+            # Update Order
+            order.is_funds_in_escrow = False
+            order.escrow_amount = Decimal('0.00')
+            order.status = 'cancelled'
+            order.save() 
+            
+            success_count += 1
+            
+    modeladmin.message_user(
+        request, 
+        f"Successfully refunded the client for {success_count} order(s).", 
+        messages.SUCCESS
+    )
+
+@admin.action(description="Settle Dispute: Pay Freelancer")
+def pay_freelancer_action(modeladmin, request, queryset):
+    """
+    Resolves dispute in favor of the freelancer.
+    Releases the escrow amount to the freelancer's available balance and completes the order.
+    """
+    success_count = 0
+    for order in queryset:
+        if order.is_funds_in_escrow and order.status != 'completed':
+            client_wallet = order.client.wallet
+            freelancer_wallet = order.freelancer.wallet
+            
+            # Math based on Wallet model logic
+            client_wallet.escrow_balance -= order.escrow_amount
+            client_wallet.save()
+            
+            freelancer_wallet.available_balance += order.escrow_amount
+            freelancer_wallet.save()
+            
+            # Update Order
+            order.is_funds_in_escrow = False
+            order.escrow_amount = Decimal('0.00')
+            order.status = 'completed'
+            order.save() 
+            
+            success_count += 1
+
+    modeladmin.message_user(
+        request, 
+        f"Successfully released funds to the freelancer for {success_count} order(s).", 
+        messages.SUCCESS
+    )
+
+# --- MODEL ADMIN REGISTRATION ---
+
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     """Admin config for the Order model."""
@@ -46,6 +115,9 @@ class OrderAdmin(admin.ModelAdmin):
     search_fields = ('service__title', 'client__username', 'freelancer__username')
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'updated_at')
+    
+    # Register the custom actions here
+    actions = [refund_client_action, pay_freelancer_action]
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('service', 'client', 'freelancer')
