@@ -1,0 +1,387 @@
+{# core/templates/core/admin_dashboard.html #}
+{% extends 'core/base.html' %}
+{% load humanize %}
+
+{% block title %}Staff Admin Panel — Nile Campus Connect{% endblock %}
+
+{% block content %}
+
+{# -PAGE HEADER -#}
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+    <div>
+        <h2 class="fw-bold mb-1">
+            <i class="bi bi-shield-lock-fill text-warning me-2"></i>
+            Staff Admin Panel
+        </h2>
+        <p class="text-muted mb-0 small">
+            Platform oversight and dispute resolution.
+            You are logged in as <strong>{{ request.user.username }}</strong>.
+        </p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="/admin/" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-grid me-1"></i> Django Admin
+        </a>
+        <a href="{% url 'core:marketplace' %}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-shop me-1"></i> Marketplace
+        </a>
+    </div>
+</div>
+
+{# - PLATFORM METRICS — top row - #}
+<div class="row g-3 mb-5">
+
+    {# Total Users #}
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100" style="border-radius:14px;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                         style="width:44px;height:44px;background:rgba(0,51,102,.08);">
+                        <i class="bi bi-people-fill text-primary fs-5"></i>
+                    </div>
+                    <span class="badge bg-light text-secondary border"
+                          style="font-size:.62rem;letter-spacing:.5px;">USERS</span>
+                </div>
+                <h2 class="fw-bold mb-0">{{ total_users|intcomma }}</h2>
+                <p class="text-muted small mb-0 mt-1">Registered students</p>
+            </div>
+        </div>
+    </div>
+
+    {# Active Gigs #}
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100" style="border-radius:14px;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                         style="width:44px;height:44px;background:rgba(16,185,129,.1);">
+                        <i class="bi bi-briefcase-fill text-success fs-5"></i>
+                    </div>
+                    <span class="badge bg-light text-secondary border"
+                          style="font-size:.62rem;letter-spacing:.5px;">GIGS</span>
+                </div>
+                <h2 class="fw-bold mb-0">{{ total_active_gigs|intcomma }}</h2>
+                <p class="text-muted small mb-0 mt-1">Active listings</p>
+            </div>
+        </div>
+    </div>
+
+    {# Total in Escrow #}
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100" style="border-radius:14px;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                         style="width:44px;height:44px;background:rgba(245,158,11,.1);">
+                        <i class="bi bi-lock-fill text-warning fs-5"></i>
+                    </div>
+                    <span class="badge bg-light text-secondary border"
+                          style="font-size:.62rem;letter-spacing:.5px;">ESCROW</span>
+                </div>
+                <h2 class="fw-bold mb-0">₦{{ total_escrow|intcomma }}</h2>
+                <p class="text-muted small mb-0 mt-1">Locked platform-wide</p>
+            </div>
+        </div>
+    </div>
+
+    {# Total Available (liquid) #}
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100" style="border-radius:14px;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                         style="width:44px;height:44px;background:rgba(139,92,246,.1);">
+                        <i class="bi bi-wallet2 fs-5" style="color:#8B5CF6;"></i>
+                    </div>
+                    <span class="badge bg-light text-secondary border"
+                          style="font-size:.62rem;letter-spacing:.5px;">LIQUID</span>
+                </div>
+                <h2 class="fw-bold mb-0">₦{{ total_available|intcomma }}</h2>
+                <p class="text-muted small mb-0 mt-1">Spendable platform-wide</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{# Order stats row #}
+<div class="row g-3 mb-5">
+    <div class="col-4">
+        <div class="card border-0 text-center p-3" style="background:#F0FDF4;border-radius:12px;">
+            <h3 class="fw-bold text-success mb-0">{{ completed_orders|intcomma }}</h3>
+            <p class="text-muted small mb-0">Completed Orders</p>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card border-0 text-center p-3" style="background:#FFF7ED;border-radius:12px;">
+            <h3 class="fw-bold text-warning mb-0">{{ escrow_orders|length }}</h3>
+            <p class="text-muted small mb-0">Awaiting Resolution</p>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card border-0 text-center p-3" style="background:#FFF1F2;border-radius:12px;">
+            <h3 class="fw-bold text-danger mb-0">{{ cancelled_orders|intcomma }}</h3>
+            <p class="text-muted small mb-0">Cancelled Orders</p>
+        </div>
+    </div>
+</div>
+
+{# - DISPUTE RESOLUTION TABLE - #}
+<div class="card border-0 shadow-sm mb-5" style="border-radius:16px;overflow:hidden;">
+    <div class="card-header bg-white border-bottom py-3 px-4
+                d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                Orders With Funds in Escrow
+            </h5>
+            <p class="text-muted small mb-0 mt-1">
+                These orders have locked funds. Use the actions below to
+                manually refund the buyer or release payment to the seller.
+            </p>
+        </div>
+        <span class="badge rounded-pill px-3 py-2"
+              style="background:#FFF7ED;color:#B45309;font-size:.8rem;">
+            {{ escrow_orders|length }} pending
+        </span>
+    </div>
+
+    {% if escrow_orders %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead style="background:#F8FAFF;">
+                <tr>
+                    <th class="ps-4 py-3 text-muted small text-uppercase fw-semibold"
+                        style="font-size:.7rem;letter-spacing:.06em;">Order</th>
+                    <th class="py-3 text-muted small text-uppercase fw-semibold"
+                        style="font-size:.7rem;letter-spacing:.06em;">Buyer</th>
+                    <th class="py-3 text-muted small text-uppercase fw-semibold"
+                        style="font-size:.7rem;letter-spacing:.06em;">Seller</th>
+                    <th class="py-3 text-muted small text-uppercase fw-semibold"
+                        style="font-size:.7rem;letter-spacing:.06em;">Status</th>
+                    <th class="py-3 text-muted small text-uppercase fw-semibold"
+                        style="font-size:.7rem;letter-spacing:.06em;">Escrow</th>
+                    <th class="py-3 text-muted small text-uppercase fw-semibold"
+                        style="font-size:.7rem;letter-spacing:.06em;">Age</th>
+                    <th class="pe-4 py-3 text-muted small text-uppercase fw-semibold text-end"
+                        style="font-size:.7rem;letter-spacing:.06em;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in escrow_orders %}
+                <tr>
+                    {# Order info #}
+                    <td class="ps-4 py-3">
+                        <a href="{% url 'core:order_detail' order.pk %}"
+                           target="_blank"
+                           class="text-decoration-none">
+                            <p class="fw-semibold text-dark mb-0"
+                               style="font-size:.875rem;max-width:180px;
+                                      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                {{ order.service.title }}
+                            </p>
+                            <small class="text-muted">#{{ order.id }}</small>
+                        </a>
+                    </td>
+
+                    {# Buyer #}
+                    <td class="py-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-primary text-white d-flex
+                                        align-items-center justify-content-center fw-bold flex-shrink-0"
+                                 style="width:30px;height:30px;font-size:.7rem;">
+                                {{ order.client.username|make_list|first|upper }}
+                            </div>
+                            <div>
+                                <p class="mb-0 fw-semibold small">{{ order.client.username }}</p>
+                                <small class="text-muted">
+                                    Bal: ₦{{ order.client.wallet.available_balance|intcomma }}
+                                </small>
+                            </div>
+                        </div>
+                    </td>
+
+                    {# Seller #}
+                    <td class="py-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-success text-white d-flex
+                                        align-items-center justify-content-center fw-bold flex-shrink-0"
+                                 style="width:30px;height:30px;font-size:.7rem;">
+                                {{ order.freelancer.username|make_list|first|upper }}
+                            </div>
+                            <div>
+                                <p class="mb-0 fw-semibold small">{{ order.freelancer.username }}</p>
+                                <small class="text-muted">
+                                    Bal: ₦{{ order.freelancer.wallet.available_balance|intcomma }}
+                                </small>
+                            </div>
+                        </div>
+                    </td>
+
+                    {# Status #}
+                    <td class="py-3">
+                        <span class="badge rounded-pill px-3
+                            {% if order.status == 'pending' %}bg-secondary
+                            {% elif order.status == 'in_progress' %}bg-warning text-dark
+                            {% elif order.status == 'pending_acceptance' %}bg-info text-dark
+                            {% else %}bg-light text-muted{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </td>
+
+                    {# Escrow amount #}
+                    <td class="py-3">
+                        <span class="fw-bold text-dark">
+                            ₦{{ order.escrow_amount|intcomma }}
+                        </span>
+                        <span class="badge ms-1"
+                              style="background:#1a5c38;color:#fff;font-size:.65rem;">
+                            🔒 Locked
+                        </span>
+                    </td>
+
+                    {# Age #}
+                    <td class="py-3">
+                        <small class="text-muted">{{ order.created_at|timesince }} ago</small>
+                    </td>
+
+                    {# Actions — two POST forms side by side #}
+                    <td class="pe-4 py-3 text-end">
+                        <div class="d-inline-flex gap-2">
+
+                            {# Refund buyer #}
+                            <form method="post"
+                                  action="{% url 'core:refund_client' order.pk %}"
+                                  onsubmit="return confirm(
+                                      'REFUND BUYER\n\n' +
+                                      'Refund ₦{{ order.escrow_amount|intcomma }} to {{ order.client.username }}?\n\n' +
+                                      'Order will be marked CANCELLED. This cannot be undone.')">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger"
+                                        style="border-radius:8px;font-size:.78rem;font-weight:600;">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i>
+                                    Refund Buyer
+                                </button>
+                            </form>
+
+                            {# Pay freelancer #}
+                            <form method="post"
+                                  action="{% url 'core:pay_freelancer' order.pk %}"
+                                  onsubmit="return confirm(
+                                      'RELEASE PAYMENT\n\n' +
+                                      'Pay ₦{{ order.escrow_amount|intcomma }} to {{ order.freelancer.username }}?\n\n' +
+                                      'Order will be marked COMPLETED. This cannot be undone.')">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="btn btn-sm btn-success"
+                                        style="border-radius:8px;font-size:.78rem;font-weight:600;">
+                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                    Pay Seller
+                                </button>
+                            </form>
+
+                        </div>
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+    <div class="text-center py-5">
+        <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex
+                    align-items-center justify-content-center mb-3"
+             style="width:64px;height:64px;">
+            <i class="bi bi-check-circle-fill text-success fs-3"></i>
+        </div>
+        <h5 class="fw-semibold text-dark">All clear!</h5>
+        <p class="text-muted small mb-0">No orders currently have funds locked in escrow.</p>
+    </div>
+    {% endif %}
+
+</div>
+
+{# - BOTTOM ROW — Recent Users + Top Gigs - #}
+<div class="row g-4">
+
+    {# Recent signups #}
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm" style="border-radius:16px;overflow:hidden;">
+            <div class="card-header bg-white border-bottom py-3 px-4">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-person-plus me-2 text-primary"></i>Recent Signups
+                </h5>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for user in recent_users %}
+                <div class="list-group-item border-0 px-4 py-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-primary text-white fw-bold d-flex
+                                    align-items-center justify-content-center flex-shrink-0"
+                             style="width:34px;height:34px;font-size:.75rem;">
+                            {{ user.username|make_list|first|upper }}
+                        </div>
+                        <div class="flex-grow-1 text-truncate">
+                            <p class="mb-0 fw-semibold small">{{ user.username }}</p>
+                            <small class="text-muted">{{ user.email }}</small>
+                        </div>
+                        <small class="text-muted flex-shrink-0">
+                            {{ user.date_joined|timesince }} ago
+                        </small>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted">
+                    <small>No users yet.</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {# Top services #}
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm" style="border-radius:16px;overflow:hidden;">
+            <div class="card-header bg-white border-bottom py-3 px-4">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-graph-up-arrow me-2 text-success"></i>Top Gigs by Orders
+                </h5>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for service in top_services %}
+                <div class="list-group-item border-0 px-4 py-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fw-bold text-muted flex-shrink-0"
+                              style="font-size:.75rem;width:20px;text-align:right;">
+                            {{ forloop.counter }}
+                        </span>
+                        <div class="flex-grow-1 text-truncate">
+                            <p class="mb-0 fw-semibold small text-truncate">
+                                {{ service.title }}
+                            </p>
+                            <small class="text-muted">by {{ service.freelancer.username }}</small>
+                        </div>
+                        <div class="text-end flex-shrink-0">
+                            <span class="badge bg-light text-dark border"
+                                  style="font-size:.72rem;">
+                                {{ service.order_count }} order{{ service.order_count|pluralize }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted">
+                    <small>No services yet.</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

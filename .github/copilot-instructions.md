@@ -111,3 +111,6 @@ python manage.py runserver
 - `core/templates/core/`: HTML templates with Bootstrap styling
 - `core/static/core/css/`: Custom CSS with Nile branding
 - `NileCampusConnect/settings.py`: Django configuration
+
+### Order Management
+- **Order Detail**: Freelancers can `accept`/`cancel`, clients can `complete`/`cancel`

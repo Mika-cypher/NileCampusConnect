@@ -1,55 +1,47 @@
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
-from django.db.models import Q
 
 User = get_user_model()
-
 
 class EmailBackend(ModelBackend):
     """
     Custom authentication backend that allows users to login with their email address.
-    Falls back to username authentication if the input doesn't look like an email.
+    Bulletproofed for case-insensitivity and duplicate test accounts.
     """
     
     def authenticate(self, request, username=None, password=None, **kwargs):
-        """
-        Authenticate a user by email or username.
-        
-        Args:
-            request: The HTTP request object
-            username: Can be either username or email address
-            password: User's password
-            
-        Returns:
-            User object if authentication succeeds, None otherwise
-        """
         if username is None:
             username = kwargs.get('username')
         
         if username is None or password is None:
             return None
         
-        # Check if the username parameter looks like an email
+        # 1. Check if it's an email
         if '@' in username:
-            try:
-                # Try to find a user with this email
-                user = User.objects.get(email=username)
-            except User.DoesNotExist:
-                # No user found with this email, return None
+            # Use 'iexact' to ignore uppercase/lowercase differences
+            users = User.objects.filter(email__iexact=username)
+            
+            if not users.exists():
                 return None
-            except User.MultipleObjectsReturned:
-                # Multiple users with same email (shouldn't happen, but handle it)
-                user = User.objects.filter(email=username).first()
+                
+            # If multiple exist (common in testing), grab the active one first
+            if users.count() > 1:
+                user = users.filter(is_active=True).first()
+                # If none are active, just grab the first one to show the standard error
+                if not user:
+                    user = users.first()
+            else:
+                user = users.first()
+                
         else:
-            # Doesn't look like an email, try username authentication
+            # 2. Doesn't look like an email, try username
             try:
-                user = User.objects.get(username=username)
+                user = User.objects.get(username__iexact=username)
             except User.DoesNotExist:
                 return None
         
-        # Check the password
-        if user.check_password(password) and self.user_can_authenticate(user):
+        # 3. Check the password AND ensure the account is active
+        if user and user.check_password(password) and self.user_can_authenticate(user):
             return user
         
         return None
-

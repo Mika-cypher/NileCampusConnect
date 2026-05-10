@@ -19,12 +19,6 @@
                 </div>
                 <div class="card-body p-4">
 
-                    {% if messages %}
-                        {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-
                     <!-- Current avatar preview -->
                     <div class="text-center mb-4">
                         {% if request.user.profile_picture %}

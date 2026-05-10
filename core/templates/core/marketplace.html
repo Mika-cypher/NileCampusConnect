@@ -1,229 +1,300 @@
-<!-- core/templates/core/marketplace.html -->
 {% extends 'core/base.html' %}
 {% load humanize %}
 
+{% block title %}Marketplace — Nile Campus Connect{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
 
-    <!-- Page header -->
-    <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-4 border-bottom flex-wrap gap-2">
-        <div>
-            <h1 class="h2 mb-0">Marketplace</h1>
-            <small class="text-muted">
-                {{ services|length }} gig{{ services|length|pluralize }} found
-                {% if search_query %}for "<strong>{{ search_query }}</strong>"{% endif %}
-                {% if active_category %}in <strong>{{ active_category.name }}</strong>{% endif %}
-            </small>
-        </div>
-        <!-- Search bar -->
-        <form class="d-flex" role="search" method="get" action=".">
-            {% if active_category %}
-                <input type="hidden" name="category" value="{{ active_category.slug }}">
-            {% endif %}
-            {% if min_price %}
-                <input type="hidden" name="min_price" value="{{ min_price }}">
-            {% endif %}
-            {% if max_price %}
-                <input type="hidden" name="max_price" value="{{ max_price }}">
-            {% endif %}
-            <input class="form-control me-2"
-                   type="search"
-                   name="q"
-                   placeholder="Search gigs…"
-                   value="{{ search_query }}"
-                   style="min-width: 220px;">
-            <button class="btn btn-outline-primary" type="submit">Search</button>
-        </form>
+<div class="mc-hero mb-4">
+
+  {% if request.user.is_authenticated %}
+  <div class="mc-hero__auth">
+    <div>
+      <p class="mc-hero__greeting">Good to see you</p>
+      <h1 class="mc-hero__headline">
+        Hi, {{ request.user.first_name|default:request.user.username }}! 👋
+      </h1>
+      <p class="mc-hero__sub">What skill do you need help with today?</p>
     </div>
-
-    <div class="row g-4">
-
-        <!-- ══════════════════════════════════════════
-             FILTER SIDEBAR
-        ══════════════════════════════════════════ -->
-        <div class="col-md-3 col-lg-2">
-            <form method="get" action="." id="filter-form">
-                {% if search_query %}
-                    <input type="hidden" name="q" value="{{ search_query }}">
-                {% endif %}
-
-                <!-- Category filter -->
-                <div class="mb-4">
-                    <h6 class="fw-semibold mb-2 text-uppercase" style="font-size:.75rem;letter-spacing:.05em;">
-                        Category
-                    </h6>
-                    <div class="list-group list-group-flush">
-                        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}{% endif %}"
-                           class="list-group-item list-group-item-action py-1 px-2 small border-0
-                                  {% if not active_category %}fw-semibold text-primary{% endif %}">
-                            All Categories
-                        </a>
-                        {% for cat in all_categories %}
-                        <a href="?category={{ cat.slug }}{% if search_query %}&q={{ search_query }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}"
-                           class="list-group-item list-group-item-action py-1 px-2 small border-0
-                                  {% if active_category.slug == cat.slug %}fw-semibold text-primary{% endif %}">
-                            {{ cat.name }}
-                        </a>
-                        {% empty %}
-                        <p class="text-muted small px-2">No categories yet.</p>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <!-- Price range filter -->
-                <div class="mb-3">
-                    <h6 class="fw-semibold mb-2 text-uppercase" style="font-size:.75rem;letter-spacing:.05em;">
-                        Price Range (₦)
-                    </h6>
-                    {% if active_category %}
-                        <input type="hidden" name="category" value="{{ active_category.slug }}">
-                    {% endif %}
-                    <div class="mb-2">
-                        <label class="form-label small text-muted mb-1">Min</label>
-                        <input type="number"
-                               name="min_price"
-                               class="form-control form-control-sm"
-                               placeholder="0"
-                               min="0"
-                               step="100"
-                               value="{{ min_price }}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted mb-1">Max</label>
-                        <input type="number"
-                               name="max_price"
-                               class="form-control form-control-sm"
-                               placeholder="Any"
-                               min="0"
-                               step="100"
-                               value="{{ max_price }}">
-                    </div>
-                    <div class="d-grid gap-1">
-                        <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
-                        <a href="{% url 'core:marketplace' %}" class="btn btn-outline-secondary btn-sm">
-                            Clear All
-                        </a>
-                    </div>
-                </div>
-
-            </form>
-        </div>
-
-        <!-- ══════════════════════════════════════════
-             SERVICE CARDS GRID
-        ══════════════════════════════════════════ -->
-        <div class="col-md-9 col-lg-10">
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4">
-
-                {% for service in services %}
-                <div class="col">
-                    <div class="card h-100 shadow-sm">
-
-                        {% if service.image %}
-                            <img src="{{ service.image.url }}"
-                                 class="card-img-top"
-                                 alt="{{ service.title }}"
-                                 style="height:180px;object-fit:cover;">
-                        {% else %}
-                            <div class="d-flex align-items-center justify-content-center bg-light"
-                                 style="height:180px;">
-                                <i class="bi bi-image text-muted" style="font-size:2.5rem;opacity:.35;"></i>
-                            </div>
-                        {% endif %}
-
-                        <div class="card-body pb-2">
-                            <!-- Category badge -->
-                            {% if service.category %}
-                            <span class="badge bg-light text-primary border border-primary-subtle mb-2"
-                                  style="font-size:.7rem;">
-                                {{ service.category.name }}
-                            </span>
-                            {% endif %}
-
-                            <h5 class="card-title mb-1" style="font-size:1rem;line-height:1.3;">
-                                {{ service.title }}
-                            </h5>
-                            <p class="text-muted small mb-2">
-                                by {{ service.freelancer.get_full_name|default:service.freelancer.username }}
-                            </p>
-                            <p class="card-text text-muted small"
-                               style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
-                                {{ service.description }}
-                            </p>
-                        </div>
-
-                        <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center py-2">
-                            <span class="text-success fw-bold">₦{{ service.price|intcomma }}</span>
-                            <a href="{% url 'core:service_detail' service.pk %}"
-                               class="btn btn-primary btn-sm">
-                                View Details
-                            </a>
-                        </div>
-
-                    </div>
-                </div>
-                {% empty %}
-                <div class="col-12 text-center py-5 text-muted">
-                    <i class="bi bi-search" style="font-size:3rem;opacity:.25;"></i>
-                    <h5 class="mt-3">No gigs match your filters.</h5>
-                    <p class="small">Try broadening your search or
-                        <a href="{% url 'core:marketplace' %}">clear all filters</a>.
-                    </p>
-                </div>
-                {% endfor %}
-
-                {% if services.has_other_pages %}
-                    <nav aria-label="Marketplace gig navigation" class="mt-5 mb-4">
-                    <ul class="pagination justify-content-center border-0 shadow-sm rounded-pill overflow-hidden" style="width: fit-content; margin: 0 auto;">
-        
-                {% if services.has_previous %}
-                    <li class="page-item">
-                    <a class="page-link text-primary fw-semibold px-4 py-2 border-0" href="?page={{ services.previous_page_number }}">
-                    <i class="bi bi-chevron-left"></i> Prev
-                    </a>
-                    </li>
-                {% else %}
-        <li class="page-item disabled">
-            <span class="page-link text-muted bg-light px-4 py-2 border-0">
-                <i class="bi bi-chevron-left"></i> Prev
-            </span>
-        </li>
-        {% endif %}
-
-        {% for num in services.paginator.page_range %}
-            {% if services.number == num %}
-            <li class="page-item active" aria-current="page">
-                <span class="page-link bg-primary border-0 px-3 py-2 fw-bold">{{ num }}</span>
-            </li>
-            {% else %}
-            <li class="page-item">
-                <a class="page-link text-dark border-0 px-3 py-2 fw-medium" href="?page={{ num }}">{{ num }}</a>
-            </li>
-            {% endif %}
-        {% endfor %}
-
-        {% if services.has_next %}
-        <li class="page-item">
-            <a class="page-link text-primary fw-semibold px-4 py-2 border-0" href="?page={{ services.next_page_number }}">
-                Next <i class="bi bi-chevron-right"></i>
-            </a>
-        </li>
-        {% else %}
-        <li class="page-item disabled">
-            <span class="page-link text-muted bg-light px-4 py-2 border-0">
-                Next <i class="bi bi-chevron-right"></i>
-            </span>
-        </li>
-        {% endif %}
-
-    </ul>
-</nav>
-{% endif %}
-
-            </div>
-        </div>
-
+    <div class="mc-hero__auth-links">
+      <a href="{% url 'core:create_service' %}" class="mc-hero__cta">
+        <i class="bi bi-plus-circle-fill"></i>
+        Post a Gig
+      </a>
     </div>
+  </div>
+
+  {% else %}
+  <div class="mc-hero__public">
+    <div class="row align-items-center g-4">
+      <div class="col-md-8">
+        <h1 class="mc-hero__public-headline">
+          Campus Skills,<br>Campus Prices.
+        </h1>
+        <p class="mc-hero__public-sub">
+          Hire talented Nile University students for design, coding,
+          writing, tutoring, and much more — with escrow-protected payments.
+        </p>
+        <div class="mc-hero__trust-pills">
+          <span class="mc-hero__trust-pill">
+            <i class="bi bi-shield-check-fill"></i> Escrow Protection
+          </span>
+          <span class="mc-hero__trust-pill">
+            <i class="bi bi-mortarboard-fill"></i> Students Only
+          </span>
+          <span class="mc-hero__trust-pill">
+            <i class="bi bi-person-check-fill"></i> Free to Join
+          </span>
+        </div>
+      </div>
+      <div class="col-md-4 text-center text-md-end">
+        <a href="{% url 'core:register' %}" class="mc-hero__cta">
+          <i class="bi bi-rocket-takeoff-fill"></i>
+          Get Started Free
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
 </div>
-{% endblock %}
 
+<div class="mc-results-bar mb-3">
+  <p class="mc-results-count">
+    {% if search_query or active_category or min_price or max_price %}
+      <strong>{{ services.paginator.count }}</strong>
+      result{{ services.paginator.count|pluralize }} found
+      {% if search_query %} for "<strong>{{ search_query }}</strong>"{% endif %}
+      {% if active_category %} in <strong>{{ active_category.name }}</strong>{% endif %}
+    {% else %}
+      Showing <strong>{{ services.paginator.count }}</strong>
+      gig{{ services.paginator.count|pluralize }}
+    {% endif %}
+  </p>
+  <button class="mc-filter-toggle-btn d-md-none"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#mcFilterPanel"
+          aria-expanded="false"
+          aria-controls="mcFilterPanel">
+    <i class="bi bi-sliders2"></i> Filters
+  </button>
+</div>
+
+<div class="row g-4 align-items-start">
+
+  <div class="col-md-3 col-xl-2">
+    <div class="collapse d-md-block" id="mcFilterPanel">
+      <div class="mc-filter-panel">
+
+        <p class="mc-filter-heading">Categories</p>
+        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}{% endif %}"
+           class="mc-cat-all {% if not active_category %}is-active{% endif %}">
+          <i class="bi bi-grid-3x3-gap-fill" style="font-size:.7rem;opacity:.6;"></i>
+          All Categories
+        </a>
+
+        <div class="mc-cat-db-list">
+          {% for cat in all_categories %}
+          <a href="?category={{ cat.slug }}{% if search_query %}&q={{ search_query }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}"
+             class="mc-cat-item {% if active_category.slug == cat.slug %}is-active{% endif %}">
+            <span class="mc-cat-dot"></span>
+            {{ cat.name }}
+          </a>
+          {% empty %}
+          <p class="mc-results-count" style="padding:.25rem .6rem;">No categories yet.</p>
+          {% endfor %}
+        </div>
+
+        <hr class="mc-filter-divider">
+
+        <form method="get" action="." id="filter-form">
+          {% if search_query %}
+            <input type="hidden" name="q" value="{{ search_query }}">
+          {% endif %}
+          {% if active_category %}
+            <input type="hidden" name="category" value="{{ active_category.slug }}">
+          {% endif %}
+
+          <p class="mc-filter-heading">Price Range (₦)</p>
+          <div class="mc-price-grid">
+            <div class="mc-price-field">
+              <label class="mc-price-label" for="id_min_price">Min</label>
+              <input class="mc-price-input"
+                     type="number"
+                     id="id_min_price"
+                     name="min_price"
+                     placeholder="0"
+                     min="0"
+                     step="100"
+                     value="{{ min_price }}">
+            </div>
+            <div class="mc-price-field">
+              <label class="mc-price-label" for="id_max_price">Max</label>
+              <input class="mc-price-input"
+                     type="number"
+                     id="id_max_price"
+                     name="max_price"
+                     placeholder="Any"
+                     min="0"
+                     step="100"
+                     value="{{ max_price }}">
+            </div>
+          </div>
+
+          <button type="submit" class="mc-filter-apply-btn">
+            Apply Filters
+          </button>
+        </form>
+
+        <a href="{% url 'core:marketplace' %}" class="mc-filter-clear-link">
+          <i class="bi bi-x-circle me-1"></i>Clear All
+        </a>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-9 col-xl-10">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4">
+      {% for service in services %}
+      <div class="col">
+        <article class="mc-card">
+
+          <div class="mc-card__thumb">
+            {% if service.image %}
+            <img src="{{ service.image.url }}"
+                 alt="{{ service.title }}"
+                 class="mc-card__thumb-img">
+            {% else %}
+            <div class="mc-card__thumb-placeholder">
+              <i class="bi bi-briefcase mc-card__thumb-placeholder-icon"></i>
+            </div>
+            {% endif %}
+
+            <div class="mc-card__thumb-overlay">
+              <span class="mc-card__thumb-cta">
+                View Gig <i class="bi bi-arrow-right"></i>
+              </span>
+            </div>
+          </div>
+
+          <div class="mc-card__body">
+            {% if service.category %}
+            <span class="mc-card__badge">{{ service.category.name }}</span>
+            {% endif %}
+
+            <h2 class="mc-card__title">{{ service.title }}</h2>
+
+            <div class="mc-card__seller">
+              {% if service.freelancer.profile_picture %}
+                <img src="{{ service.freelancer.profile_picture.url }}"
+                     alt="{{ service.freelancer.username }}"
+                     class="mc-card__avatar">
+              {% else %}
+                <span class="mc-card__avatar-initials">
+                  {{ service.freelancer.username|make_list|first|upper }}
+                </span>
+              {% endif %}
+
+              <span class="mc-card__seller-name">
+                {{ service.freelancer.get_full_name|default:service.freelancer.username|truncatechars:22 }}
+              </span>
+
+              {% if service.freelancer.average_rating %}
+              <span class="mc-card__rating">
+                <i class="bi bi-star-fill mc-card__rating-icon"></i>
+                {{ service.freelancer.average_rating }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mc-card__footer">
+            <div class="mc-card__footer-left">
+              {% if service.delivery_time %}
+              <span class="mc-card__delivery">
+                <i class="bi bi-clock"></i> {{ service.delivery_time }}
+              </span>
+              {% endif %}
+              <div>
+                <span class="mc-card__price-label">From</span>
+                <span class="mc-card__price">₦{{ service.price|intcomma }}</span>
+              </div>
+            </div>
+
+            <a href="{% url 'core:service_detail' service.pk %}"
+               class="mc-card__view-btn"
+               aria-label="View {{ service.title }}">
+              View <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+
+        </article>
+      </div>
+      {% empty %}
+      <div class="col-12">
+        <div class="mc-empty">
+          <div class="mc-empty__icon-wrap">
+            <i class="bi bi-search mc-empty__icon"></i>
+          </div>
+          <h3 class="mc-empty__title">No gigs found</h3>
+          <p class="mc-empty__sub">
+            {% if search_query %}
+              No results for "<strong>{{ search_query }}</strong>".
+              Try different keywords or browse all categories.
+            {% else %}
+              No gigs match your current filters. Try widening your search.
+            {% endif %}
+          </p>
+          <a href="{% url 'core:marketplace' %}" class="mc-empty__clear-btn">
+            <i class="bi bi-arrow-left"></i> Back to All Gigs
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if services.has_other_pages %}
+    <nav class="mc-pagination" aria-label="Marketplace pages">
+      {% if services.has_previous %}
+      <a class="mc-page-btn"
+         href="?page={{ services.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if active_category %}&category={{ active_category.slug }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}"
+         aria-label="Previous page">
+        <i class="bi bi-chevron-left"></i>
+      </a>
+      {% else %}
+      <span class="mc-page-btn is-disabled" aria-disabled="true">
+        <i class="bi bi-chevron-left"></i>
+      </span>
+      {% endif %}
+
+      {% for num in services.paginator.page_range %}
+        {% if services.number == num %}
+        <span class="mc-page-btn is-active" aria-current="page">{{ num }}</span>
+        {% elif num > services.number|add:"-3" and num < services.number|add:"3" %}
+        <a class="mc-page-btn"
+           href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if active_category %}&category={{ active_category.slug }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}">
+          {{ num }}
+        </a>
+        {% endif %}
+      {% endfor %}
+
+      {% if services.has_next %}
+      <a class="mc-page-btn"
+         href="?page={{ services.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if active_category %}&category={{ active_category.slug }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}"
+         aria-label="Next page">
+        <i class="bi bi-chevron-right"></i>
+      </a>
+      {% else %}
+      <span class="mc-page-btn is-disabled" aria-disabled="true">
+        <i class="bi bi-chevron-right"></i>
+      </span>
+      {% endif %}
+    </nav>
+    {% endif %}
+
+  </div>
+</div>
+
+{% endblock %}

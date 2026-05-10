@@ -5,13 +5,13 @@
 
 {% block content %}
 
-<div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, var(--nile-blue), #0056b3); border-radius:16px;">
+<div class="card border-0 shadow-sm mb-4 hero-card-primary">
     <div class="card-body p-4 p-md-5 d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div class="text-white">
             <h2 class="fw-bold mb-1">Welcome back, {{ request.user.first_name|default:request.user.username }}!</h2>
             <p class="mb-0 opacity-75">Here is your campus business overview for today.</p>
         </div>
-        <a href="{% url 'core:create_service' %}" class="btn btn-warning fw-bold shadow-sm px-4 py-2" style="border-radius: 8px;">
+        <a href="{% url 'core:create_service' %}" class="btn btn-warning fw-bold shadow-sm px-4 py-2 button-radius-8">
             <i class="bi bi-plus-circle me-2"></i>Post a Gig
         </a>
     </div>
@@ -19,14 +19,13 @@
 
 <div class="row g-3 mb-4">
     <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100" style="border-radius:14px;">
+        <div class="card border-0 shadow-sm h-100 rounded-card-14">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center"
-                         style="width:44px;height:44px;">
+                    <div class="rounded-circle bg-success bg-opacity-10 icon-circle-44 d-flex align-items-center justify-content-center">
                         <i class="bi bi-wallet2 fs-5 text-success"></i>
                     </div>
-                    <span class="badge bg-light text-secondary border fw-bold" style="font-size:.65rem; letter-spacing: 0.5px;">AVAILABLE</span>
+                    <span class="badge bg-light text-secondary border fw-bold" class="badge bg-light text-secondary border fw-bold badge-small">AVAILABLE</span>
                 </div>
                 <h3 class="fw-bold mb-1 text-dark">
                     ₦<span id="wallet-balance">{% if wallet %}{{ wallet.available_balance|intcomma }}{% else %}0.00{% endif %}</span>
@@ -42,14 +41,13 @@
     </div>
 
     <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100" style="border-radius:14px;">
+        <div class="card border-0 shadow-sm h-100 rounded-card-14">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
-                         style="width:44px;height:44px;">
+                    <div class="rounded-circle bg-primary bg-opacity-10 icon-circle-44 d-flex align-items-center justify-content-center">
                         <i class="bi bi-lock fs-5 text-primary"></i>
                     </div>
-                    <span class="badge bg-light text-secondary border fw-bold" style="font-size:.65rem; letter-spacing: 0.5px;">ESCROW</span>
+                    <span class="badge bg-light text-secondary border fw-bold badge-small">ESCROW</span>
                 </div>
                 <h3 class="fw-bold mb-1 text-dark">
                     ₦{% if wallet %}{{ wallet.escrow_balance|intcomma }}{% else %}0.00{% endif %}
@@ -60,10 +58,10 @@
     </div>
 
     <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100" style="border-radius:14px;">
+        <div class="card border-0 shadow-sm h-100 rounded-card-14">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center" style="width:44px;height:44px;">
+                    <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center" class="rounded-circle icon-circle-44 d-flex align-items-center justify-content-center">
                         <i class="bi bi-cart3 fs-5 text-warning"></i>
                     </div>
                 </div>
@@ -74,10 +72,10 @@
     </div>
 
     <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100" style="border-radius:14px;">
+        <div class="card border-0 shadow-sm h-100 rounded-card-14">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="rounded-circle bg-info bg-opacity-10 d-flex align-items-center justify-content-center" style="width:44px;height:44px;">
+                    <div class="rounded-circle bg-info bg-opacity-10 d-flex align-items-center justify-content-center" class="rounded-circle icon-circle-44 d-flex align-items-center justify-content-center">
                         <i class="bi bi-tools fs-5 text-info"></i>
                     </div>
                 </div>
@@ -263,7 +261,7 @@
         </div>
         {% else %}
         <div class="text-center py-5">
-            <i class="bi bi-rocket" style="font-size:2.5rem;opacity:.2;"></i>
+            <i class="bi bi-rocket" class="bi bi-rocket icon-muted-large"></i>
             <p class="text-muted mt-3 mb-3 fw-medium">You haven't posted any gigs yet.</p>
         </div>
         {% endif %}

@@ -4,15 +4,6 @@
 {% block content %}
 <div class="container mt-4">
 
-    {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close alert" title="Close alert"></button>
-        </div>
-        {% endfor %}
-    {% endif %}
-
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h5 class="text-muted mb-0">Order #{{ order.id }}</h5>
@@ -85,18 +76,18 @@
                     {% endwith %}
                 </div>
             
-                <div class="card-body p-3 chat-thread" id="chat-thread">
+                <div class="card-body p-3 chat-thread" id="chat-thread" style="max-height: 400px; overflow-y: auto;">
             
                     {% for msg in thread %}
             
                         {% if msg.sender == request.user %}
-                        <div class="d-flex justify-content-end">
-                            <div class="message-bubble-wrap">
+                        <div class="d-flex justify-content-end mb-3">
+                            <div class="message-bubble-wrap" style="max-width: 75%;">
                                 <div class="bg-primary text-white rounded-3 px-3 py-2 outgoing-message-bubble">
                                     {{ msg.text|linebreaksbr }}
                                 </div>
                                 <div class="text-end mt-1">
-                                    <small class="text-muted timestamp-small">
+                                    <small class="text-muted timestamp-small" style="font-size: 0.75rem;">
                                         {{ msg.created_at|date:"M d · H:i" }}
                                     </small>
                                 </div>
@@ -104,19 +95,19 @@
                         </div>
             
                         {% else %}
-                        <div class="d-flex justify-content-start align-items-end gap-2">
-                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center flex-shrink-0 sender-avatar">
+                        <div class="d-flex justify-content-start align-items-end gap-2 mb-3">
+                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center flex-shrink-0 sender-avatar" style="width: 32px; height: 32px;">
                                 {{ msg.sender.username|make_list|first|upper }}
                             </div>
-                            <div class="message-bubble-wrap">
-                                <small class="text-muted d-block mb-1 meta-small-text">
+                            <div class="message-bubble-wrap" style="max-width: 75%;">
+                                <small class="text-muted d-block mb-1 meta-small-text" style="font-size: 0.75rem;">
                                     {{ msg.sender.get_full_name|default:msg.sender.username }}
                                 </small>
                                 <div class="bg-light border rounded-3 px-3 py-2 text-dark incoming-message-bubble">
                                     {{ msg.text|linebreaksbr }}
                                 </div>
                                 <div class="mt-1">
-                                    <small class="text-muted timestamp-small">
+                                    <small class="text-muted timestamp-small" style="font-size: 0.75rem;">
                                         {{ msg.created_at|date:"M d · H:i" }}
                                     </small>
                                 </div>
@@ -124,34 +115,44 @@
                         </div>
                         {% endif %}
             
-                        {% empty %}
-                        <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
-                            <i class="bi bi-chat empty-chat-icon"></i>
+                    {% empty %}
+                        <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted py-5">
+                            <i class="bi bi-chat fs-1 text-light mb-2"></i>
                             <p class="mt-2 small">No messages yet. Say hello!</p>
                         </div>
-                        {% endfor %}
+                    {% endfor %}
             
                 </div>
             
                 {% if order.status not in 'completed cancelled' %}
-                <div class="card-footer bg-white border-top pt-3">
-                    <form method="post" id="chat-form">
-                        {% csrf_token %}
-                        <div class="d-flex gap-2 align-items-end">
-                            <div class="flex-grow-1">
-                                {{ msg_form.text }}
-                            </div>
-                            <button type="submit"
-                                    name="send_message"
-                                    class="btn btn-primary px-3 send-message-btn"
-                                    title="Send message">
-                                <i class="bi bi-send-fill"></i>
-                            </button>
-                        </div>
-                    </form>
+                <div class="card-footer bg-white border-top pt-3 pb-3">
+<form method="post" id="chat-form">
+    {% csrf_token %}
+    
+    {# --- ADD THIS: Shows the Auto-Blocker Error --- #}
+    {% if msg_form.errors %}
+        <div class="text-danger small fw-bold mb-2">
+            {{ msg_form.non_field_errors }}
+            {{ msg_form.text.errors }}
+        </div>
+    {% endif %}
+    {# ---------------------------------------------- #}
+
+    <div class="d-flex gap-2 align-items-end">
+        <div class="flex-grow-1">
+            {{ msg_form.text }}
+        </div>
+        <button type="submit"
+                name="send_message"
+                class="btn btn-primary px-3 send-message-btn"
+                title="Send message">
+            <i class="bi bi-send-fill"></i>
+        </button>
+    </div>
+</form>
                 </div>
                 {% else %}
-                <div class="card-footer bg-light text-center py-2">
+                <div class="card-footer bg-light text-center py-3">
                     <small class="text-muted">
                         <i class="bi bi-lock me-1"></i>
                         This order is {{ order.status }}. The message thread is now read-only.
@@ -161,7 +162,9 @@
             
             </div>
 
-        </div> <div class="col-md-4">
+        </div> 
+        
+        <div class="col-md-4">
             <div class="card shadow-sm mb-3">
                 <div class="card-body">
                     <h5 class="card-title mb-3">Actions</h5>
@@ -178,9 +181,9 @@
                             </form>
                             <form method="post" class="d-grid gap-2">
                                 {% csrf_token %}
-                                <button type="submit" name="action" value="cancel"
-                                        class="btn btn-outline-danger"
-                                        onclick="return confirm('Cancel this order? The buyer will be fully refunded.')">
+                                <input type="hidden" name="action" value="cancel">
+                                <button type="submit" class="btn btn-outline-danger"
+                                        onclick="return confirm('Decline this order? The buyer will be fully refunded.')">
                                     Decline Order
                                 </button>
                             </form>
@@ -195,9 +198,9 @@
                                 </a>
                                 <form method="post">
                                     {% csrf_token %}
-                                    <div class="d-grid">
-                                        <button type="submit" name="action" value="cancel"
-                                                class="btn btn-outline-danger btn-sm"
+                                    <input type="hidden" name="action" value="cancel">
+                                    <div class="d-grid mt-2">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm"
                                                 onclick="return confirm('Cancel this order? The buyer will be fully refunded.')">
                                             Cancel Order
                                         </button>
@@ -229,12 +232,38 @@
                     {% elif request.user == order.client %}
                         <p class="text-muted small mb-3">You are the <strong>Buyer</strong>.</p>
 
-                        {% if order.status == 'in_progress' %}
+                        {% if order.status == 'pending' %}
+                            <div class="alert alert-warning text-center mb-0">
+                                <i class="bi bi-clock me-2"></i>
+                                <strong>Order Pending.</strong><br>
+                                <small>Waiting for the freelancer to accept.</small>
+                            </div>
+                            <form method="post" class="d-grid gap-2 mt-3">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="cancel">
+                                <button type="submit" class="btn btn-outline-danger"
+                                        onclick="return confirm('Cancel this order? Your funds will be refunded.')">
+                                    Cancel Order
+                                </button>
+                            </form>
+
+                        {% elif order.status == 'in_progress' %}
                             <div class="alert alert-info text-center mb-0">
                                 <i class="bi bi-hourglass me-2"></i>
                                 <strong>Work in progress.</strong><br>
                                 <small>Waiting for the freelancer to submit their delivery.</small>
                             </div>
+                            <a href="#chat-thread" class="btn btn-outline-secondary w-100 mt-3">
+                                <i class="bi bi-chat-dots me-2"></i>Message Freelancer
+                            </a>
+                            <form method="post" class="mt-3">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="cancel">
+                                <button type="submit" class="btn btn-outline-danger w-100"
+                                        onclick="return confirm('Cancel this order? Your funds will be refunded. Note: Work may have already started.')">
+                                    Cancel Order
+                                </button>
+                            </form>
 
                         {% elif order.status == 'pending_acceptance' %}
                             <div class="alert alert-warning mb-3">
@@ -244,8 +273,8 @@
                             </div>
                             <form method="post" class="d-grid gap-2">
                                 {% csrf_token %}
-                                <button type="submit" name="action" value="complete"
-                                        class="btn btn-success btn-lg"
+                                <input type="hidden" name="action" value="complete">
+                                <button type="submit" class="btn btn-success btn-lg"
                                         onclick="return confirm('Accept delivery and release ₦{{ order.price }} to {{ order.freelancer.username }}?')">
                                     <i class="bi bi-check-circle-fill me-2"></i> Accept Delivery
                                 </button>
@@ -284,7 +313,7 @@
 
             <div class="card shadow-sm">
                 <div class="card-body d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center contact-avatar">
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center contact-avatar" style="width: 48px; height: 48px;">
                         <i class="bi bi-person fs-4 text-secondary"></i>
                     </div>
                     <div>
@@ -302,7 +331,9 @@
                 </div>
             </div>
 
-        </div> </div> </div>
+        </div> 
+    </div> 
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -312,11 +343,19 @@
         if (thread) thread.scrollTop = thread.scrollHeight;
 
         const chatForm = document.getElementById("chat-form");
+        // Added standard bootstrap form-control class to selector fallback
         const chatInput = document.getElementById("chat-input")
-            || document.querySelector("#chat-form textarea");
+            || document.querySelector("#chat-form textarea") 
+            || document.querySelector("#chat-form input[type='text']");
 
         if (chatInput && chatForm) {
             if (!chatInput.id) chatInput.id = "chat-input";
+            
+            // Optional: Ensure the input looks like a bootstrap input if it doesn't already
+            if (!chatInput.classList.contains('form-control')) {
+                chatInput.classList.add('form-control');
+            }
+            
             chatInput.addEventListener("keydown", function(e) {
                 // If user presses Enter WITHOUT holding Shift
                 if (e.key === "Enter" && !e.shiftKey) {

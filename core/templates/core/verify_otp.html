@@ -1,0 +1,53 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Verify Email — Nile Campus Connect{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-5 text-center">
+                    
+                    <div class="mb-4">
+                        <i class="bi bi-envelope-check text-primary" style="font-size: 3.5rem;"></i>
+                    </div>
+                    
+                    <h3 class="fw-bold mb-2 text-dark">Check your email</h3>
+                    <p class="text-muted mb-4 small">
+                        We've sent a 6-digit verification code to <br>
+                        <strong>{{ user.email }}</strong>
+                    </p>
+                    
+                    <form method="post" action="{% url 'core:verify_otp' user.id %}">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <input type="text" 
+                                   name="otp_code" 
+                                   class="form-control form-control-lg text-center fw-bold text-primary" 
+                                   style="font-size: 2rem; letter-spacing: 0.5rem;" 
+                                   maxlength="6" 
+                                   pattern="\d{6}"
+                                   title="Please enter exactly 6 digits"
+                                   placeholder="000000"
+                                   required 
+                                   autofocus>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mb-3">
+                            Verify Account
+                        </button>
+                    </form>
+                    
+                    <p class="small text-muted mb-0">
+                        Didn't get the code? 
+                        <a href="#" class="text-decoration-none">Resend it</a>
+                    </p>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

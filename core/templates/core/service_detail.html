@@ -74,4 +74,48 @@
         </div>
     </div>
 </div>
+{# - RECOMMENDATION ENGINE (SIMILAR GIGS) -#}
+{% if similar_gigs %}
+<div class="mt-5 pt-4 border-top">
+    <div class="d-flex align-items-center mb-4">
+        <div class="rounded-circle d-flex align-items-center justify-content-center me-2" 
+             style="width: 32px; height: 32px; background: rgba(139,92,246,.1);">
+            <i class="bi bi-stars text-primary" style="color: #8B5CF6 !important;"></i>
+        </div>
+        <h4 class="fw-bold mb-0">Similar Gigs You Might Like</h4>
+    </div>
+
+    <div class="row g-4">
+        {% for gig in similar_gigs %}
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm" style="border-radius: 12px; transition: transform 0.2s;">
+                <div class="card-body">
+                    {# Freelancer Info #}
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold me-2" 
+                             style="width: 28px; height: 28px; font-size: 0.7rem;">
+                            {{ gig.freelancer.username|make_list|first|upper }}
+                        </div>
+                        <small class="text-muted fw-semibold">{{ gig.freelancer.username }}</small>
+                    </div>
+                    
+                    {# Gig Title #}
+                    <h6 class="fw-bold mb-2">
+                        <a href="{% url 'core:service_detail' gig.pk %}" class="text-dark text-decoration-none stretched-link">
+                            {{ gig.title }}
+                        </a>
+                    </h6>
+                    
+                    {# Price #}
+                    <div class="mt-auto pt-3 d-flex justify-content-between align-items-center">
+                        <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Starting at</small>
+                        <span class="fw-bold text-success">₦{{ gig.price }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 {% endblock %}

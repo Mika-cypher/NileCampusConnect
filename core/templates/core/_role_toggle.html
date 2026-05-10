@@ -1,0 +1,43 @@
+{# core/templates/core/_role_toggle.html #}
+{# Include with: {% include 'core/_role_toggle.html' %} #}
+{# Requires `active_role` in context. #}
+
+<div class="d-flex align-items-center gap-3 flex-wrap">
+
+    {# Role pill switcher #}
+    <div class="btn-group shadow-sm" role="group" aria-label="Switch dashboard view">
+
+        <form method="post" action="{% url 'core:switch_role' %}" class="d-inline" data-no-spinner>
+            {% csrf_token %}
+            <button type="submit"
+                    name="role"
+                    value="client"
+                    class="btn btn-sm {% if active_role == 'client' %}btn-primary{% else %}btn-outline-secondary text-muted{% endif %} role-btn-left"
+                    {% if active_role == 'client' %}disabled aria-pressed="true"{% endif %}>
+                <i class="bi bi-person-fill me-1"></i>Buyer
+            </button>
+        </form>
+
+        <form method="post" action="{% url 'core:switch_role' %}" class="d-inline" data-no-spinner>
+            {% csrf_token %}
+            <button type="submit"
+                    name="role"
+                    value="freelancer"
+                    class="btn btn-sm {% if active_role == 'freelancer' %}btn-success{% else %}btn-outline-secondary text-muted{% endif %} role-btn-right"
+                    {% if active_role == 'freelancer' %}disabled aria-pressed="true"{% endif %}>
+                <i class="bi bi-tools me-1"></i>Seller
+            </button>
+        </form>
+
+    </div>
+
+    {# Current mode label #}
+    <span class="text-muted small">
+        {% if active_role == 'client' %}
+            <i class="bi bi-eye me-1"></i>Viewing as <strong>Buyer</strong>
+        {% else %}
+            <i class="bi bi-eye me-1"></i>Viewing as <strong>Seller</strong>
+        {% endif %}
+    </span>
+
+</div>

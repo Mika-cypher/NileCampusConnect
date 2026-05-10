@@ -3,8 +3,12 @@
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.urls import reverse
-
 from .models import CustomUser, Order, Message, Notification
+from django.conf import settings
+from .models import Service
+import google.generativeai as genai
+
+genai.configure(api_key=settings.GEMINI_API_KEY)
 
 # Wallet auto-creation
 
@@ -144,3 +148,25 @@ def notify_on_new_message(sender, instance, created, **kwargs):
         ),
         link=order_url,
     )
+
+@receiver(post_save, sender=Service)
+def generate_service_embedding(sender, instance, created, **kwargs):
+    print(f"🚨 DEBUG: Signal just woke up for Gig: {instance.title}")
+    print(f"🚨 DEBUG: Embedding value is currently: {repr(instance.embedding)}")
+    if instance.embedding is None:
+        try:
+            text_to_embed = f"Title: {instance.title}. Description: {instance.description}"
+            
+            # Using the NEW 2026 model
+            response = genai.embed_content(
+                model="models/gemini-embedding-2", # Updated model
+                content=text_to_embed,
+                task_type="retrieval_document",
+                output_dimensionality=768 # Forces it to stay at 768!
+            )
+            
+            instance.embedding = response['embedding']
+            instance.save(update_fields=['embedding'])
+            
+        except Exception as e:
+            print(f"AI Embedding Failed: {e}")

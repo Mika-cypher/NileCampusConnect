@@ -1,8 +1,15 @@
 # core/models.py
 
 from django.db import models
+from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
+import random
+import string
 from django.contrib.auth.models import AbstractUser
 from decimal import Decimal
+from pgvector.django import VectorField
+from django.core.exceptions import ValidationError
 
 
 class CustomUser(AbstractUser):
@@ -144,6 +151,7 @@ class Service(models.Model):
         default=True,
         help_text="Whether the service is currently available"
     )
+    embedding = VectorField(dimensions=768, null=True, blank=True)
 
     def __str__(self):
         return f"{self.title} - {self.freelancer.username}"
@@ -310,6 +318,18 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message #{self.id} on Order #{self.order_id} from {self.sender.username}"
+    
+    def clean(self):
+        super().clean() # Always call the parent class first
+        
+        trigger_words = ['assignment', 'exam', 'quiz', 'homework', 'grade', 'lecturer']
+        content_lower = str(self.text).lower()
+
+        # Check if any banned word is in the message
+        for word in trigger_words:
+            if word in content_lower:
+                # This stops the database save and throws an error back to the user
+                raise ValidationError(f"Message blocked: The word '{word}' triggers our Academic Integrity filter. Please revise your message.")
 
     class Meta:
         verbose_name = "Message"
@@ -353,3 +373,35 @@ class Notification(models.Model):
         verbose_name = "Notification"
         verbose_name_plural = "Notifications"
         ordering = ['-created_at']   #
+
+class OTP(models.Model):
+    """
+    Stores a short-lived 6-digit code for email verification.
+    Automatically expires 10 minutes after creation.
+    """
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE,
+        related_name='otp_record'
+    )
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    @staticmethod
+    def generate_code():
+        """Generates a secure, random 6-digit string."""
+        return ''.join(random.choices(string.digits, k=6))
+
+    def is_expired(self):
+        """Checks if the current time is past the expiration time."""
+        return timezone.now() > self.expires_at
+
+    def save(self, *args, **kwargs):
+        """Auto-calculate the expiration time if it doesn't exist."""
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(minutes=10)
+        super().save(*args, **kwargs)
+        
+    def __str__(self):
+        return f"OTP for {self.user.username} (Valid: {not self.is_expired()})"

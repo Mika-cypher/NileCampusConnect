@@ -1,0 +1,204 @@
+{# core/templates/core/wallet.html #}
+{% extends 'core/base.html' %}
+{% load humanize %}
+
+{% block title %}Wallet — Nile Campus Connect{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0"><i class="bi bi-wallet2 text-success me-2"></i>My Wallet</h2>
+        <small class="text-muted">Manage your balance and fund your account</small>
+    </div>
+</div>
+
+{# ── Balance cards ── #}
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm wallet-stat-card h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="rounded-circle bg-success bg-opacity-10 d-flex
+                                align-items-center justify-content-center"
+                         style="width:44px;height:44px;">
+                        <i class="bi bi-wallet2 fs-5 text-success"></i>
+                    </div>
+                    <span class="badge bg-light text-secondary border fw-bold"
+                          style="font-size:.62rem;letter-spacing:.5px;">AVAILABLE</span>
+                </div>
+                <h3 class="fw-bold mb-1 text-dark">
+                    ₦<span id="wallet-balance">{{ wallet.available_balance|intcomma }}</span>
+                </h3>
+                <p class="text-muted small mb-3">Spendable or withdrawable</p>
+                <button class="btn btn-success btn-sm rounded-pill w-100 fw-semibold"
+                        onclick="payWithPaystack()"
+                        data-user-email="{{ request.user.email }}">
+                    <i class="bi bi-plus-circle me-2"></i>Fund Wallet
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm wallet-stat-card h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="rounded-circle bg-warning bg-opacity-10 d-flex
+                                align-items-center justify-content-center"
+                         style="width:44px;height:44px;">
+                        <i class="bi bi-lock fs-5 text-warning"></i>
+                    </div>
+                    <span class="badge bg-light text-secondary border fw-bold"
+                          style="font-size:.62rem;letter-spacing:.5px;">ESCROW</span>
+                </div>
+                <h3 class="fw-bold mb-1 text-dark">₦{{ wallet.escrow_balance|intcomma }}</h3>
+                <p class="text-muted small mb-0">Locked in active orders</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm wallet-stat-card h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex
+                                align-items-center justify-content-center"
+                         style="width:44px;height:44px;">
+                        <i class="bi bi-cart3 fs-5 text-primary"></i>
+                    </div>
+                    <span class="badge bg-light text-secondary border fw-bold"
+                          style="font-size:.62rem;letter-spacing:.5px;">SPENT</span>
+                </div>
+                <h3 class="fw-bold mb-1 text-dark">₦{{ total_spent|intcomma }}</h3>
+                <p class="text-muted small mb-0">All-time purchases</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm wallet-stat-card h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="rounded-circle bg-info bg-opacity-10 d-flex
+                                align-items-center justify-content-center"
+                         style="width:44px;height:44px;">
+                        <i class="bi bi-graph-up-arrow fs-5 text-info"></i>
+                    </div>
+                    <span class="badge bg-light text-secondary border fw-bold"
+                          style="font-size:.62rem;letter-spacing:.5px;">EARNED</span>
+                </div>
+                <h3 class="fw-bold mb-1 text-dark">₦{{ total_earned|intcomma }}</h3>
+                <p class="text-muted small mb-0">All-time earnings</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── Recent activity feed ── #}
+<div class="card border-0 shadow-sm" style="border-radius:14px;">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-clock-history me-2 text-muted"></i>Recent Activity
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        {% if recent %}
+        <div class="list-group list-group-flush">
+            {% for order in recent %}
+            <a href="{% url 'core:order_detail' order.pk %}"
+               class="list-group-item list-group-item-action d-flex
+                      justify-content-between align-items-center p-3">
+                <div class="text-truncate me-3">
+                    <p class="mb-0 fw-semibold text-truncate">{{ order.service.title }}</p>
+                    <small class="text-muted">{{ order.updated_at|date:"M d, Y" }}</small>
+                </div>
+                <div class="text-end flex-shrink-0">
+                    {% if order.client == request.user %}
+                        <span class="text-danger fw-bold">−₦{{ order.price|intcomma }}</span>
+                        <span class="badge bg-secondary ms-2 rounded-pill">Bought</span>
+                    {% else %}
+                        <span class="text-success fw-bold">+₦{{ order.price|intcomma }}</span>
+                        <span class="badge bg-success ms-2 rounded-pill">Sold</span>
+                    {% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-clock-history" style="font-size:2.5rem;opacity:.2;"></i>
+            <p class="mt-3 mb-0">No transactions yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+(function () {
+    "use strict";
+    const PUBLIC_KEY  = "pk_test_3a9033e5e93264bf28684120dee7227cab9d6c32";
+    const VERIFY_URL  = "{% url 'core:verify_payment' %}";
+    const CSRF        = "{{ csrf_token }}";
+    const btn         = document.querySelector('[data-user-email]');
+    const userEmail   = btn ? btn.dataset.userEmail : "";
+    const balSpan     = document.getElementById("wallet-balance");
+
+    function fmt(n) {
+        return parseFloat(n).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    window.payWithPaystack = function () {
+        const raw = window.prompt("Enter amount to add (₦):\nMinimum: ₦100");
+        if (raw === null) return;
+        const amount = parseFloat(raw.replace(/[^0-9.]/g, ""));
+        if (isNaN(amount) || amount < 100) { alert("Enter at least ₦100."); return; }
+
+        PaystackPop.setup({
+            key: PUBLIC_KEY, 
+            email: userEmail,
+            amount: Math.round(amount * 100), 
+            currency: "NGN",
+            ref: "NCC-" + Date.now() + "-" + Math.floor(Math.random() * 1e6),
+            
+            // Fix: Reverted to standard function to pass Paystack validation
+            callback: function (res) {  
+                if (btn) { btn.disabled = true; btn.textContent = "Verifying…"; }
+                
+                fetch(VERIFY_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": CSRF },
+                    body: JSON.stringify({ reference: res.reference }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        if (balSpan) balSpan.textContent = fmt(data.new_balance);
+                        alert("✅ " + data.message);
+                        window.location.reload();
+                    } else {
+                        alert("⚠️ " + (data.message || "Verification failed."));
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("⚠️ Something went wrong verifying the payment.");
+                })
+                .finally(() => {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>Fund Wallet';
+                    }
+                });
+            },
+            onClose: function () {},
+        }).openIframe();
+    };
+})();
+</script>
+{% endblock %}
