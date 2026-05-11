@@ -14,36 +14,30 @@
 <body>
 
 {# ── TOP NAVBAR — full width, sticky, no sidebar companion── #}
-<nav class="navbar navbar-expand-lg px-3 py-2"
-     style="background: #003366; z-index: 1100;">
+<nav class="navbar navbar-expand-lg px-3 py-2 navbar-custom">
     <div class="container-fluid p-0">
 
         {# Brand #}
-        <a class="navbar-brand fw-bold text-white me-3 flex-shrink-0"
-           href="{% url 'core:marketplace' %}"
-           style="font-size: 1.1rem; letter-spacing: -.3px;">
+        <a class="navbar-brand fw-bold text-white me-3 flex-shrink-0 navbar-brand-custom"
+           href="{% url 'core:home' %}">
             <i class="bi bi-diagram-3-fill text-warning me-2"></i>Nile CC.
         </a>
 
 {# Search — Centered with max-width #}
         <form class="d-flex flex-grow-1 mx-lg-auto nav-search px-lg-4"
               method="get"
-              action="{% url 'core:marketplace' %}"
+              action="{% url 'core:home' %}"
               role="search"
-              data-no-spinner
-              style="max-width: 650px;">
-            <input class="form-control"
+              data-no-spinner>
+            <input class="form-control search-input"
                    type="search"
                    name="q"
                    placeholder="Search gigs, skills, services…"
-                   value="{{ request.GET.q|default:'' }}"
-                   style="border-radius: 20px 0 0 20px; border: 0;
-                          background: rgba(255,255,255,.15); color: #fff;
-                          font-size: .875rem;">
-            <button class="btn px-3"
+                   value="{{ request.GET.q|default:'' }}">
+            <button class="btn px-3 search-button"
                     type="submit"
-                    style="border-radius: 0 20px 20px 0; border: 0;
-                           background: rgba(255,255,255,.2); color: #fff;">
+                    title="Search"
+                    aria-label="Search">
                 <i class="bi bi-search"></i>
             </button>
         </form>
@@ -69,11 +63,11 @@
                     <button class="btn btn-sm btn-outline-light rounded-pill px-3"
                             data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-grid me-1"></i>Categories
-                        <i class="bi bi-chevron-down ms-1" style="font-size:.65rem;"></i>
+                        <i class="bi bi-chevron-down ms-1 chevron-down"></i>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:200px; z-index:1101;">
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm dropdown-menu-categories">
                         <li>
-                            <a class="dropdown-item small" href="{% url 'core:marketplace' %}">
+                            <a class="dropdown-item small" href="{% url 'core:home' %}">
                                 <i class="bi bi-grid-3x3-gap me-2 text-muted"></i>All Categories
                             </a>
                         </li>
@@ -81,7 +75,7 @@
                         {% for cat in all_categories %}
                         <li>
                             <a class="dropdown-item small"
-                               href="{% url 'core:marketplace' %}?category={{ cat.slug }}">
+                               href="{% url 'core:home' %}?category={{ cat.slug }}">
                                 {{ cat.name }}
                             </a>
                         </li>
@@ -289,12 +283,12 @@
 {% if request.user.is_authenticated and all_categories %}
 <div class="subnav">
     <div class="subnav-inner">
-        <a href="{% url 'core:marketplace' %}"
-           class="subnav-link {% if request.resolver_match.url_name == 'marketplace' and not request.GET.category %}active{% endif %}">
+        <a href="{% url 'core:home' %}"
+           class="subnav-link {% if request.resolver_match.url_name == 'home' and not request.GET.category %}active{% endif %}">
             All
         </a>
         {% for cat in all_categories %}
-        <a href="{% url 'core:marketplace' %}?category={{ cat.slug }}"
+        <a href="{% url 'core:home' %}?category={{ cat.slug }}"
            class="subnav-link {% if request.GET.category == cat.slug %}active{% endif %}">
             {{ cat.name }}
         </a>

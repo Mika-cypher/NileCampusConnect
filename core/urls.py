@@ -2,14 +2,15 @@
 
 from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
+from django.views.generic.base import RedirectView
 from . import views
 
 app_name = 'core'
 
 urlpatterns = [
     # --- Public ---
-    path('', views.home, name='home'),
-    path('marketplace/', views.marketplace, name='marketplace'),
+    path('', views.marketplace, name='home'),
+    path('marketplace/', RedirectView.as_view(pattern_name='core:home', permanent=False)),
     path('services/<int:pk>/', views.service_detail, name='service_detail'),
     path('services/<int:pk>/checkout/', views.checkout, name='checkout'),
 
@@ -47,7 +48,7 @@ urlpatterns = [
     # --- Auth ---
     path('register/', views.register, name='register'),
     path('login/', auth_views.LoginView.as_view(template_name='core/login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='core:marketplace'), name='logout'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='core:home'), name='logout'),
 
     path('password-reset/', auth_views.PasswordResetView.as_view(
         template_name='core/password_reset.html',

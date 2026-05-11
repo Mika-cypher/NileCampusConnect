@@ -20,7 +20,7 @@
                 <p class="mb-3 opacity-75">Your buyer overview — orders you've placed.</p>
                 {% include 'core/_role_toggle.html' %}
             </div>
-            <a href="{% url 'core:marketplace' %}"
+            <a href="{% url 'core:home' %}"
                class="btn btn-warning fw-bold shadow-sm px-4 py-2 button-radius-8 align-self-start">
                 <i class="bi bi-shop me-2"></i>Browse Gigs
             </a>
@@ -127,7 +127,7 @@
             <h5 class="mb-0 fw-bold">
                 <i class="bi bi-cart3 me-2 text-primary"></i>My Purchases
             </h5>
-            <a href="{% url 'core:marketplace' %}" class="btn btn-sm btn-outline-primary">
+            <a href="{% url 'core:home' %}" class="btn btn-sm btn-outline-primary">
                 <i class="bi bi-shop me-1"></i>Browse More
             </a>
         </div>
@@ -214,7 +214,7 @@
             <div class="text-center py-5 text-muted">
                 <i class="bi bi-cart text-light" class="icon-large"></i>
                 <p class="mt-3 mb-2 fw-medium">No active purchases yet.</p>
-                <a href="{% url 'core:marketplace' %}" class="btn btn-sm btn-primary">
+                <a href="{% url 'core:home' %}" class="btn btn-sm btn-primary">
                     Find a Freelancer
                 </a>
             </div>
