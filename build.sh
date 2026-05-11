@@ -24,3 +24,4 @@ echo "→ Running database migrations..."
 python manage.py migrate --noinput
 
 echo "✓ Build complete."
+python manage.py seed_data
