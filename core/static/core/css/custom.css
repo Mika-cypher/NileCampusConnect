@@ -35,7 +35,6 @@
     gap: 0.5rem;
 }
 
-/* --- Sidebar & Branding Restoration --- */
 
 :root {
     --nile-blue: #003366; /* Deep Navy Blue */
@@ -222,41 +221,7 @@
 .avatar-42-cover { width: 42px; height: 42px; object-fit: cover; }
 .icon-large { font-size: 2.5rem; }
 
-/* Sidebar Styling */
-.sidebar {
-    background-color: var(--nile-blue);
-    min-height: 100vh;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-}
 
-.sidebar .nav-link {
-    color: rgba(255, 255, 255, 0.85); /* Off-white text */
-    padding: 10px 15px;
-    border-radius: 5px;
-    margin-bottom: 5px;
-    transition: all 0.3s ease;
-}
-
-.sidebar .nav-link:hover, .sidebar .nav-link.active {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    transform: translateX(5px); /* subtle slide effect */
-}
-
-/* Logo Area */
-.sidebar-brand {
-    padding: 20px 15px;
-    text-align: center;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    margin-bottom: 20px;
-}
-
-.sidebar-brand h3 {
-    color: #fff;
-    font-weight: 700;
-    margin: 0;
-    font-size: 1.5rem;
-}
 
 
 /* --- Global Layout Fixes --- */
@@ -470,13 +435,7 @@ body {
     z-index: 1070;
 }
 
-.sticky-sidebar {
-    z-index: 1040;
-    position: sticky;
-    top: 56px;
-    height: calc(100vh - 56px);
-    overflow-y: auto;
-}
+
 
 .empty-chat-icon {
     font-size: 2.5rem;

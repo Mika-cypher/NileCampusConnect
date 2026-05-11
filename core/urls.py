@@ -14,8 +14,7 @@ urlpatterns = [
     path('services/<int:pk>/', views.service_detail, name='service_detail'),
     path('services/<int:pk>/checkout/', views.checkout, name='checkout'),
 
-    # --- Dashboard (backward-compat redirect) ---
-    path('dashboard/', views.dashboard, name='dashboard'),
+    
 
     # --- Buyer ---
     path('orders/my/', views.my_orders, name='my_orders'),

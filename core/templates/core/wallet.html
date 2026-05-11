@@ -31,7 +31,7 @@
                     ₦<span id="wallet-balance">{{ wallet.available_balance|intcomma }}</span>
                 </h3>
                 <p class="text-muted small mb-3">Spendable or withdrawable</p>
-                <button class="btn btn-success btn-sm rounded-pill w-100 fw-semibold"
+                <button type="button" class="btn btn-success btn-sm rounded-pill w-100 fw-semibold"
                         onclick="payWithPaystack()"
                         data-user-email="{{ request.user.email }}">
                     <i class="bi bi-plus-circle me-2"></i>Fund Wallet

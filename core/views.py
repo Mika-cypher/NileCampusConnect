@@ -234,13 +234,7 @@ def verify_otp(request, user_id):
 
 
 # ---------------------------------------------------------------------------
-# Dashboard — backward-compat redirect only (URL kept so old links don't 404)
-# ---------------------------------------------------------------------------
 
-@login_required
-@never_cache
-def dashboard(request):
-    return redirect('core:marketplace')
 
 
 # ---------------------------------------------------------------------------
@@ -779,7 +773,7 @@ def inbox(request):
 def mark_notifications_read(request):
     Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
     messages.success(request, "All notifications marked as read.")
-    return redirect('core:marketplace')          # ← no longer dashboard
+    return redirect('core:home')          # ← no longer dashboard
 
 
 # ---------------------------------------------------------------------------
