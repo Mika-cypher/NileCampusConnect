@@ -15,8 +15,6 @@ from django.db.models import Q, Max, Sum
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.conf import settings
-
-from NileCampusConnect.settings import DEFAULT_FROM_EMAIL
 from .models import Order, Service, Wallet, CustomUser, Review, Category, Message, Notification, OTP
 from .forms import StudentRegistrationForm, ServiceForm, DeliveryForm, ReviewForm, ProfileUpdateForm, MessageForm
 from decimal import Decimal
@@ -203,7 +201,7 @@ def register(request):
             send_otp_email(user, otp.code)
             
             # 4. Redirect them to the new Bouncer page, NOT the marketplace
-            messages.success(request, 'Registration successful! Please check your terminal for the OTP.')
+            messages.success(request, 'Registration successful! Please check your university email for the OTP code (check the spam folder just in case).')
             return redirect('core:verify_otp', user_id=user.id)
             
     else:
