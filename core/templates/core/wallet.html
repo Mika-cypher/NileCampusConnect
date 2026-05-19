@@ -115,7 +115,7 @@
                 </div>
                 <div class="text-end flex-shrink-0">
                     {% if order.client == request.user %}
-                        <span class="text-danger fw-bold">−₦{{ order.price|intcomma }}</span>
+                        <span class="text-dark fw-bold">−₦{{ order.price|intcomma }}</span>
                         <span class="badge bg-secondary ms-2 rounded-pill">Bought</span>
                     {% else %}
                         <span class="text-success fw-bold">+₦{{ order.price|intcomma }}</span>
